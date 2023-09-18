@@ -1,0 +1,616 @@
+<?xml version="1.0"?>
+
+<ruleset name="customization"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>customization rule</description>
+
+    <rule name="StreamExpressionStyleRule"
+          language="java"
+          message="java.customization.StreamExpressionStyleRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.StreamExpressionStyleRule">
+        <description>java.customization.StreamExpressionStyleRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+  public Foo() {
+    // correct
+    List<String> stringList = new ArrayList();
+    List<String> filterList = stringList
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(x -> Objects.equals("1", x))
+            .collect(Collectors.toList());
+
+    filterList = stringList.stream()
+            .filter(Objects::nonNull)
+            .filter(x -> Objects.equals("1", x))
+            .collect(Collectors.toList());
+
+    // incorrect
+    List<String> filterList = stringList.stream().filter(Objects::nonNull)
+            .filter(x -> Objects.equals("1", x)).collect(Collectors.toList());
+
+
+     // correct
+     Mono<String> resultMono = Flux.fromIterable(iterable)
+                .map(value -> {
+                    // doSomething();
+                    return Mono.just();
+                })
+                .flatMapSequential(x -> x)
+                .collectList()
+                .flatMap(states -> {
+                    // doSomething();
+                    return Mono.just();
+                });
+
+      // correct
+      Mono<Boolean> monoResult = getMonoInfo()
+                        .map(wrapper -> Objects.equals("test", wrapper));
+      monoResult = getMonoInfo().map(wrapper -> Objects.equals("test", wrapper));
+      String firstValue = Mono.just(new ArrayList<String>())
+                    .flatMap(this::getMonoListInfo)
+                    .map(x -> x.get(0))
+                    .block();
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="ConditionalTooLongNeedChangeLineRule"
+          language="java"
+          message="java.customization.ConditionalTooLongNeedChangeLineRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.ConditionalTooLongNeedChangeLineRule">
+        <description>java.customization.ConditionalTooLongNeedChangeLineRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="conditionalLengthLimit" value="50"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+  public Foo(List<String> stringList, String input) {
+    // incorrect conditional expression too long(over 50 literals) need change line
+    boolean isTest = Objects.nonNull(input) && StringList.contains("conditionalTooLongNeedChangeLine");
+        && input.equals("test")
+
+
+    // correct（the conditional symbol must be change line）
+    boolean isTest = Objects.nonNull(input)
+                        && input.equals("test")
+                        && StringList.contains("conditionalTooLongNeedChangeLine");
+    // incorrect
+    if(Objects.nonNull(input) && StringList.contains("conditionalTooLongNeedChangeLine")
+        && input.equals("test")) {
+        // doSomething();
+    }
+
+    // correct
+    if(Objects.nonNull(input)
+        && input.equals("test")
+        && StringList.contains("conditionalTooLongNeedChangeLine")) {
+        // doSomething();
+    }
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidComplexConditionalRule"
+          language="java"
+          message="java.customization.AvoidComplexConditionalRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidComplexConditionalRule">
+        <description>java.customization.AvoidComplexConditionalRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+  public Foo(List<String> stringList, String input) {
+    // incorrect  complex condition
+    boolean isTest = (Objects.nonNull(input) || input.equals("test"))
+                && StringList.contains("conditionalTooLongNeedChangeLine");
+
+    boolean isTest2 = Objects.nonNull(input)
+                        && input.equals("test")
+                        || StringList.stream().anyMatch(x-> Objects.equals(x, "1"));
+
+    boolean isTest3 = StringList.stream().anyMatch(x-> !Objects.equals(x, "3")
+            && (Objects.equals(x, "1") || Objects.equals(x, "2")));
+
+    boolean isTest4 = !isOk() || input.equals("test");
+
+    boolean isTest5 = !isOk() && input.equals("test");
+
+    boolean isTest6 = isOk()^isOk2() && input.equals("test");
+
+    boolean isTest7 = !isOk()^isOk2();
+
+    boolean isTest8 = (a | b) == c && isOk2();
+
+    boolean isTest9 = (a & b) == c && isOk2();
+
+    boolean isTest10 = (a >> 2) == c && isOk2();
+
+    boolean isTest11 = (a << 2) == c && isOk2();
+
+    boolean isTest12 = (a >>> 2) == c && isOk2();
+
+    boolean isTest13 = ~a == b && isOk2();
+
+    // correct
+    boolean isCondition1 = Objects.nonNull(input) || input.equals("test");
+    boolean isTest1 = condition1
+            && StringList.contains("conditionalTooLongNeedChangeLine");
+
+    boolean isCondition21 = Objects.nonNull(input) && input.equals("test");
+    boolean isCondition22 = StringList.stream().anyMatch(x-> Objects.equals(x, "1"));
+    boolean isTest2 = isCondition21 || isCondition22;
+
+    boolean isTest3 = StringList.stream().anyMatch(this::isCondition3);
+
+    private boolean isCondition3(String x){
+        boolean isCondition31 = Objects.equals(x, "1") || Objects.equals(x, "2");
+        return !Objects.equals(x, "3") && isCondition31;
+    }
+  }
+}
+]]>
+        </example>
+    </rule>
+
+
+    <rule name="StreamExpressionTooLongRule"
+          language="java"
+          message="java.customization.StreamExpressionTooLongRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.StreamExpressionTooLongRule">
+        <description>java.customization.StreamExpressionTooLongRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="maxLine" value="30"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    public Foo() {
+        // recommend
+        List<String> stringList = new ArrayList();
+        List<String> filterList = stringList
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(x -> Objects.equals("1", x))
+                .collect(Collectors.toList());
+
+        // not recommend
+        List<String> stringList = new ArrayList();
+        // over than 30 line(default threshold is 30),no statistical comments
+        List<String> filterList = stringList
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(x -> Objects.equals("1", x))
+                .map(x-> {
+                    // build TestModel(no total)
+                    TestModel model = new TestModel();
+                    model.setXXX(x);
+                    ...
+                    ...
+                    ...
+                    ...
+                    return model;
+                })
+                .collect(Collectors.toList());
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidStreamExpressionInIfStmtsRule"
+          language="java"
+          message="java.customization.AvoidStreamExpressionInIfStmtsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidStreamExpressionInIfStmtsRule"
+          typeResolution="true">
+        <description>java.customization.AvoidStreamExpressionInIfStmtsRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+    public Foo(List<String> stringList, String input) {
+
+        // not recommend
+        if(!stringList.isEmpty()
+            && stringList.stream().anyMatch(x -> Objects.equals("1", x))) {
+            doSomething();
+        }
+
+        // not recommend
+        if(Optional.ofNullable(input).orElse("").equals("test")) {
+            doSomething();
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
+
+    <rule name="UndefinedMagicConstantRule"
+          language="java"
+          message="java.customization.UndefinedMagicConstantRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.UndefinedMagicConstantRule">
+        <description>java.customization.UndefinedMagicConstantRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="literalWhiteList" value="1|0|-1|0.0|1.0|0L|1L"/>
+        </properties>
+        <example>
+            <![CDATA[
+    // Magic values, except for predefined, are forbidden in coding.
+    if ("ctrip".equals(key)) {
+            //...
+    }
+    // correct example
+    String KEY_PRE = "ctrip";
+    if (KEY_PRE.equals(key)) {
+            //...
+    }
+         ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidIfStmtsInSwitchStmtsRule"
+          language="java"
+          message="java.customization.AvoidIfStmtsInSwitchStmtsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidIfStmtsInSwitchStmtsRule">
+        <description>java.customization.AvoidIfStmtsInSwitchStmtsRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+    public class Foo {
+        public Foo(InputModel inputModel) {
+            switch (inputModel.getTitle()) {
+                case "Test1":
+                    // incorrect
+                    if (StringUtils.isNotEmpty(inputModel.getContent())) {
+                        //doSomething()
+                    } else {
+                        //doSomething()
+                    }
+                    break;
+                case "Unit1":
+                    // incorrect
+                    if (Objects.equals(inputModel.getContent(), "UnitContent")) {
+                        //doSomething()
+                    } else {
+                        //doSomething()
+                    }
+                    break;
+                 default:
+                     //doSomething()
+            }
+        }
+    }
+
+         ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidStreamExpressionInStreamExpressionRule"
+          language="java"
+          message="java.customization.AvoidStreamExpressionInStreamExpressionRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidStreamExpressionInStreamExpressionRule">
+        <description>java.customization.AvoidStreamExpressionInStreamExpressionRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="streamExpressionLimitNum" value="0"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+  public Foo() {
+    // correct
+    List<String> stringList = new ArrayList();
+    List<String> filterList = stringList
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(x -> Objects.equals("1", x))
+            .collect(Collectors.toList());
+
+    // incorrect
+    List<String> filterList = stringList
+            .stream()
+            .filter(Objects::nonNull)
+            // stream expression contain stream expression
+            .filter(x -> Optional.ofNullable(x).orElse("").equals("1"))
+            .collect(Collectors.toList());
+
+    // incorrect
+    InnerClass innerClass = getInnerClass();
+    List<InnerClass2> filterList = innerClass.getInnerClass2List()
+            .stream()
+            .filter(Objects::nonNull)
+            // stream expression contain stream expression
+            .filter(x -> x.getStringList().stream().anyMatch(j -> Objects.equals(j, "1")))
+            .collect(Collectors.toList());
+
+    // correct
+    boolean result = innerClassList.stream()
+        .filter(Objects::nonNull)
+        .map(InnerClass::getExtensions)
+        .flatMap(Collection::stream)
+        .anyMatch(x -> Objects.equals("1", x));
+    // incorrect
+    boolean result = innerClassList.stream()
+        .filter(Objects::nonNull)
+        // stream expression contain stream expression
+        .flatMap(x -> x.getExtensions().stream())
+        .anyMatch(x -> Objects.equals("1", x));
+  }
+}
+]]>
+        </example>
+    </rule>
+    <rule name="GuardClausesRule"
+          language="java"
+          message="java.customization.GuardClausesRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.GuardClausesRule">
+        <description>java.customization.GuardClausesRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+  public String bar() {
+    // incorrect
+    // returnStatement complexity < thenStatement complexity
+    if(isOk()){
+        doSomething(); // thenStatement complexity+1
+        return "ok"; // thenStatement complexity+1
+    }
+    // returnStatement complexity=1
+    return "not ok"; // or throw new Exception("not ok");
+
+    // elseStatement complexity < thenStatement complexity
+    if(isOk()){
+        doSomething();
+        return "ok";
+    } else {
+        return "not ok";// or throw new Exception("not ok");
+    }
+
+    // correct
+    if(!isOk()){
+        return "not ok";// or throw new Exception("not ok");
+    }
+
+    doSomething();
+    return "ok";
+
+    // correct
+    if(isOk()){
+       doSomething();
+       return "ok";
+    } else {
+       doSomething();
+       return "not ok";// or throw new Exception("not ok");
+    }
+
+    // correct
+    // returnStatement complexity > thenStatement complexity
+    if(isOk()){
+       doSomething(); // thenStatement complexity+1
+       return "ok"; // thenStatement complexity+1
+    }
+    // returnStatement complexity=4
+    return list.stream()
+               .filter(x->Objects.equals(x,"1"))
+               .findFirst()
+               .orElse("");
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="CollectorsToMapUnUseThirdParamRule"
+          language="java"
+          message="java.customization.CollectorsToMapUnUseThirdParamRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.CollectorsToMapUnUseThirdParamRule">
+        <description>java.customization.CollectorsToMapUnUseThirdParamRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+    // correct
+    private Map<String, String> convertExtensionOptions(List<KeyValuePairType> source) {
+        return source.stream()
+                .filter(Objects::nonNull)
+                .filter(keyValue -> StringUtils.hasText(keyValue.getKey())
+                    && Objects.nonNull(keyValue.getValue()))
+                .collect(Collectors.toMap(KeyValuePairType::getKey, KeyValuePairType::getValue, (key1, key2) -> key1));
+                //.collect(Collectors.toConcurrentMap(KeyValuePairType::getKey, KeyValuePairType::getValue, (key1, key2) -> key1));
+    }
+
+    // incorrect
+    private Map<String, String> convertExtensionOptions(List<KeyValuePairType> source) {
+        return source.stream()
+                .filter(Objects::nonNull)
+                .filter(keyValue -> StringUtils.hasText(keyValue.getKey())
+                    && Objects.nonNull(keyValue.getValue()))
+                .collect(Collectors.toMap(KeyValuePairType::getKey, KeyValuePairType::getValue));
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="AvoidOptionalExpressionToStreamRule"-->
+    <!--language="java"-->
+    <!--message="java.customization.AvoidOptionalExpressionToStreamRule.rule.msg"-->
+    <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidOptionalExpressionToStreamRule">-->
+    <!--<description>java.customization.AvoidOptionalExpressionToStreamRule.rule.desc</description>-->
+    <!--<priority>3</priority>-->
+    <!--<example>-->
+    <!--<![CDATA[-->
+    <!--public class Foo {-->
+    <!--// correct-->
+    <!--public void foo2() {-->
+    <!--List<String> tempList = Optional.ofNullable(list)-->
+    <!--.orElse(new ArrayList())-->
+    <!--List<String> filterList = tempList.stream()-->
+    <!--.filter(Objects::nonNull)-->
+    <!--.filter(x -> Objects.equals("1",x))-->
+    <!--.collect(Collectors.toList());-->
+    <!--}-->
+
+    <!--// incorrect-->
+    <!--public void foo2() {-->
+    <!--List<String> filterList = Optional.ofNullable(list)-->
+    <!--.orElse(new ArrayList())-->
+    <!--.stream()-->
+    <!--.filter(Objects::nonNull)-->
+    <!--.filter(x -> Objects.equals("1",x))-->
+    <!--.collect(Collectors.toList());-->
+    <!--}-->
+    <!--}-->
+    <!--]]>-->
+    <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="AvoidTooManyConditionRule"
+          language="java"
+          message="java.customization.AvoidTooManyConditionRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidTooManyConditionRule">
+        <description>java.customization.AvoidTooManyConditionRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="conditionLimitedNum" value="4"></property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    // incorrect too many condition
+    public void foo2() {
+        if(a || b || c || d || e){
+            // doSomething()
+        }
+
+        // too many condition
+        List<String> filterList = list.stream()
+            .filer(x-> x==1 || x==2 || x==3 || x==4 || x==5)
+            .collect(Collectors.toList());
+
+        // too many condition
+        boolean result = a || b || c || d || e;
+    }
+
+    // correct
+    public void foo2() {
+        if(a || b || c || d){
+            // doSomething()
+        }
+
+        List<String> filterList = list.stream()
+            .filer(x-> x==1 || x==2 || x==3 || x==4)
+            .collect(Collectors.toList());
+
+        boolean result = a || b || c || d;
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidUseComplexStreamExpressionInSetMethodRule"
+          language="java"
+          message="java.customization.AvoidUseComplexStreamExpressionInSetMethodRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidUseComplexStreamExpressionInSetMethodRule">
+        <description>java.customization.AvoidUseComplexStreamExpressionInSetMethodRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="startWithMethodName" value="set"></property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    // incorrect set's formal param contain stream expression
+    public void foo2(List<String> nameList) {
+        ModelClass model = new ModelClass();
+        model.setName(nameList.stream().filter(Objects::nonNull).findFirst().orElse(""));
+    }
+
+    // correct
+    public void foo2(List<String> nameList, Mono<String> monoInfo) {
+        ModelClass model = new ModelClass();
+        String name = nameList.stream()
+                              .filter(Objects::nonNull)
+                              .findFirst()
+                              .orElse("");
+        model.setName(name);
+        model.setMonoInfo(monoInfo);
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidUseUnSynchronizedFormatRule"
+          language="java"
+          message="java.customization.AvoidUseUnSynchronizedFormatRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidUseUnSynchronizedFormatRule">
+        <description>java.customization.AvoidUseUnSynchronizedFormatRule.rule.desc</description>
+        <priority>5</priority>
+        <properties>
+            <property name="forbiddenMethodName" value="format|parse|parseObject"></property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    // incorrect
+    private static final SimpleDateFormat sdf = new SimpleDateFormat();
+    private static final DecimalFormat decimalFormat = new DecimalFormat();
+    private static final DateFormat dateFormat = new DateFormat();
+    private static final MessageFormat messageFormat = new MessageFormat();
+    private static final Object lock = new Object();
+    void foo() {
+        sdf.format();
+        sdf.parse();
+        decimalFormat.format();
+        dateFormat.format();
+        messageFormat.format();
+    }
+
+    // correct
+    void foo() {
+        synchronized (lock) { // preferred
+            sdf.format();
+            sdf.parse();
+            decimalFormat.format();
+            dateFormat.format();
+            messageFormat.format();
+        }
+    }
+
+    // use local variable no good
+    void foo() {
+        SimpleDateFormat sdf = new SimpleDateFormat();
+        sdf.format();
+        sdf.parse();
+    }
+
+    // suggest use apache FastDateFormat
+    private static final FastDateFormat format = FastDateFormat.getInstance();
+    void foo() {
+        format.format();
+        format.parse();
+    }
+}
+]]>
+        </example>
+    </rule>
+
+</ruleset>

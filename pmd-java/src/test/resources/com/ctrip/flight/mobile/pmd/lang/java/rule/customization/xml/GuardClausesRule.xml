@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>bad return or throw directly after the if statement</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        if(isOk()){
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+        }
+        return "not ok";
+    }
+
+    public String bar2() {
+        if(isOk()){
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+        }
+        throw new ArgumentNullException("not ok");
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad return or throw directly after the if-else statement</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        if(isOk()){
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+        } else {
+            return "not ok";
+        }
+    }
+
+    public String bar2() {
+        if(isOk()){
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+        } else {
+            throw new ArgumentNullException("not ok");
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad if contain return or throw directly after the if statement</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        if(isOk()){
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+            if(isOk2()) {
+                String s = "ok2";
+                StringBuilder sb = new StringBuilder();
+                sb.append(s);
+            }
+            return "not ok2";
+        }
+    }
+
+    public String bar2() {
+        if(isOk()){
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+            if(isOk2()) {
+                String s = "ok2";
+                StringBuilder sb = new StringBuilder();
+                sb.append(s);
+            }
+            throw new ArgumentNullException("not ok2");
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad if contain return or throw directly after the if-else statement</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        if(isOk()){
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+            if(isOk2()){
+                String s = "ok2";
+                StringBuilder sb = new StringBuilder();
+                sb.append(s);
+            } else {
+                return "not ok2";
+            }
+        }
+    }
+
+    public String bar2() {
+        if(isOk()){
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+            if(isOk2()) {
+                String s = "ok2";
+                StringBuilder sb = new StringBuilder();
+                sb.append(s);
+            } else {
+                throw new ArgumentNullException("not ok2");
+            }
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok guard clauses</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        if(!isOk()) {
+            return "not ok";
+        }
+        String s = "ok";
+        List<String> list = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append(s);
+        return "ok";
+    }
+
+    public String bar() {
+        if(!isOk()) {
+            throw new ArgumentNullException("not ok");
+        }
+        String s = "ok";
+        List<String> list = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        sb.append(s);
+        return "ok";
+    }
+}
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok guard clauses</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        if(isOk()){
+            return "not ok";
+        } else {
+            return "ok";
+        }
+    }
+
+    public String bar2() {
+         if(isOk()) {
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+         }
+         String s = "ok2";
+         StringBuilder sb = new StringBuilder();
+         sb.append(s);
+         return "ok";
+    }
+}]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok else if is not guard clauses</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        if(isOk()) {
+            return  "ok";
+        } else if(isOk2()) {
+            String s = "ok2";
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+            return "ok";
+        } else {
+            return "not ok";
+        }
+    }
+}]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok not guard clauses</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        if(isOk()){
+            return "not ok";
+        } else {
+            return "ok";
+        }
+    }
+
+    public String bar2() {
+         if(isOk()) {
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+         }
+         String s = "ok2";
+         StringBuilder sb = new StringBuilder();
+         sb.append(s);
+         return "ok";
+    }
+}]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok not guard clauses</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar2() {
+         if(isOk()) {
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+         } else {
+            return list.stream()
+                       .filter(x->Objects.equal(x,"1"))
+                       .map(x->{
+                            Model model = new Model();
+                            model.setName(x);
+                            return model.getName();
+                       })
+                       .findFirst()
+                       .orElse("");
+         }
+    }
+
+    public String bar2() {
+         if(isOk()) {
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+         }
+         return list.stream()
+                    .filter(x->Objects.equal(x,"1"))
+                    .map(x->{
+                        Model model = new Model();
+                        model.setName(x);
+                        return model.getName();
+                    })
+                    .findFirst()
+                    .orElse("");
+
+    }
+}]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad guard clauses</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar2() {
+         if(isOk()) {
+            String s = "ok";
+            List<String> list = new ArrayList<>();
+         }
+         return "not ok";
+    }
+}]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad guard clauses thenStatement complex num over than returnStatement complex num</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar2() {
+         if(isOk()) {
+            String s = "ok2";
+            StringBuilder sb = new StringBuilder();
+            sb.append(s);
+            String s1 = "ok";
+            List<String> list = new ArrayList<>();
+         }
+         return list.stream()
+                    .filter(x->Objects.equal(x,"1"))
+                    .findFirst()
+                    .orElse("");
+    }
+}]]></code>
+    </test-code>
+</test-data>

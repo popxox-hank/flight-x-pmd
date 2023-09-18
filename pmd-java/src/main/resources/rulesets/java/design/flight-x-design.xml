@@ -1,0 +1,954 @@
+<?xml version="1.0"?>
+
+<ruleset name="design"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Rules that help you discover design issues.
+    </description>
+
+    <rule name="AvoidDeeplyNestedIfStmtsRule"
+          language="java"
+          message="java.design.AvoidDeeplyNestedIfStmtsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.AvoidDeeplyNestedIfStmtsRule">
+        <description>java.design.AvoidDeeplyNestedIfStmtsRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="problemDepth" value="3"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+  public void bar(int x, int y, int z) {
+    if (x>y) {
+      if (y>z) {
+        if (z==x) {
+         // !! too deep
+        }
+      }
+    }
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="AvoidRethrowingExceptionRule"-->
+          <!--language="java"-->
+          <!--message="java.design.AvoidRethrowingExceptionRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.AvoidRethrowingExceptionRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.design.AvoidRethrowingExceptionRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//CatchStatement[FormalParameter-->
+ <!--/VariableDeclaratorId/@Name = Block/BlockStatement/Statement-->
+ <!--/ThrowStatement/Expression/PrimaryExpression[count(PrimarySuffix)=0]/PrimaryPrefix/Name/@Image-->
+ <!--and count(Block/BlockStatement/Statement) =1]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public void bar() {-->
+    <!--try {-->
+        <!--// do something-->
+    <!--}  catch (SomeException se) {-->
+       <!--throw se;-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="AvoidThrowingNewInstanceOfSameExceptionRule"-->
+          <!--language="java"-->
+          <!--message="java.design.AvoidThrowingNewInstanceOfSameExceptionRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.AvoidThrowingNewInstanceOfSameExceptionRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.design.AvoidThrowingNewInstanceOfSameExceptionRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//CatchStatement[-->
+  <!--count(Block/BlockStatement/Statement) = 1-->
+  <!--and-->
+  <!--FormalParameter/Type/ReferenceType/ClassOrInterfaceType/@Image = Block/BlockStatement/Statement/ThrowStatement/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/ClassOrInterfaceType/@Image-->
+  <!--and-->
+  <!--count(Block/BlockStatement/Statement/ThrowStatement/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression) = 1-->
+  <!--and-->
+  <!--FormalParameter/VariableDeclaratorId = Block/BlockStatement/Statement/ThrowStatement/Expression/PrimaryExpression/PrimaryPrefix/AllocationExpression/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name-->
+  <!--]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public void bar() {-->
+    <!--try {-->
+        <!--// do something-->
+    <!--} catch (SomeException se) {-->
+        <!--// harmless comment-->
+        <!--throw new SomeException(se);-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="AvoidThrowingNullPointerExceptionRule"-->
+          <!--language="java"-->
+          <!--message="java.design.AvoidThrowingNullPointerExceptionRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.AvoidThrowingNullPointerExceptionRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.design.AvoidThrowingNullPointerExceptionRule.rule.desc</description>-->
+        <!--<priority>1</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class Foo {-->
+    <!--void bar() {-->
+        <!--throw new NullPointerException();-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="ClassWithOnlyPrivateConstructorsShouldBeFinalRule"-->
+          <!--language="java"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.ClassWithOnlyPrivateConstructorsShouldBeFinalRule"-->
+          <!--message="java.design.ClassWithOnlyPrivateConstructorsShouldBeFinalRule.rule.msg"-->
+          <!--deprecated="true">-->
+        <!--<description>java.design.ClassWithOnlyPrivateConstructorsShouldBeFinalRule.rule.desc</description>-->
+        <!--<priority>1</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//TypeDeclaration-->
+  <!--(: no lombok constructor annotations :)-->
+  <!--[not(Annotation[pmd-java:typeIs('lombok.Value')])]-->
+  <!--[not(Annotation[pmd-java:typeIs('lombok.NoArgsConstructor')-->
+               <!--or pmd-java:typeIs('lombok.RequiredArgsConstructor')-->
+               <!--or pmd-java:typeIs('lombok.AllArgsConstructor')]-->
+     <!--[not(.//MemberValuePair[@MemberName='access'])-->
+       <!--or .//MemberValuePair[@MemberName='access']-->
+                            <!--[.//Name[@Image!='PRIVATE']-->
+                                    <!--[@Image!='AccessLevel.PRIVATE']-->
+                                    <!--[@Image!='lombok.AccessLevel.PRIVATE']-->
+                            <!--]-->
+     <!--]-->
+  <!--)]-->
+  <!--/ClassOrInterfaceDeclaration-->
+  <!--[@Final = false()]-->
+  <!--(: at least one private constructor :)-->
+  <!--[ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/ConstructorDeclaration[@Private = true()]]-->
+  <!--(: no public constructor :)-->
+  <!--[not(./ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/ConstructorDeclaration[(@Public = true()) or (@Protected = true()) or (@PackagePrivate = true())])]-->
+  <!--(: not a base class in the same compilation unit :)-->
+  <!--[not(@SimpleName = ../../TypeDeclaration/ClassOrInterfaceDeclaration/ExtendsList/ClassOrInterfaceType/@Image)]-->
+  <!--(: not a base class for an inner class in the same compilation unit :)-->
+  <!--[not(@SimpleName = .//ClassOrInterfaceDeclaration/ExtendsList/ClassOrInterfaceType/@Image)]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class Foo {  //Should be final-->
+    <!--private Foo() { }-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="CognitiveComplexityRule"
+          language="java"
+          message="java.design.CognitiveComplexityRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.CognitiveComplexityRule">
+        <description>java.design.CognitiveComplexityRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="reportLevel" value="15"/>
+        </properties>
+        <example>
+            <![CDATA[
+desc see detail:https://git.dev.sh.ctripcorp.com/flight-mobile/flight-mobile-new-pmd/
+-/blob/release/pmd-java/README.md#CognitiveComplexityRule
+
+public class Foo {
+  // Has a cognitive complexity of 0
+  public void createAccount() {
+    Account account = new Account("PMD");
+    // save account
+  }
+
+  // Has a cognitive complexity of 1
+  public Boolean setPhoneNumberIfNotExisting(Account a, String phone) {
+    if (a.phone == null) {                          // +1
+      a.phone = phone;
+      return true;
+    }
+
+    return false;
+  }
+
+  // Has a cognitive complexity of 4
+  public void updateContacts(List<Contact> contacts) {
+    List<Contact> contactsToUpdate = new ArrayList<Contact>();
+
+    for (Contact contact : contacts) {                           // +1
+      if (contact.department.equals("Finance")) {                // +2 (nesting = 1)
+        contact.title = "Finance Specialist";
+        contactsToUpdate.add(contact);
+      } else if (contact.department.equals("Sales")) {           // +1
+        contact.title = "Sales Specialist";
+        contactsToUpdate.add(contact);
+      }
+    }
+    // save contacts
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="CollapsibleIfStatementsRule"
+          language="java"
+          message="java.design.CollapsibleIfStatementsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.CollapsibleIfStatementsRule">
+        <description>java.design.CollapsibleIfStatementsRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//IfStatement[@Else= false()]/Statement
+ /IfStatement[@Else= false()]
+ |
+//IfStatement[@Else= false()]/Statement
+ /Block[count(BlockStatement)=1]/BlockStatement
+  /Statement/IfStatement[@Else= false()]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+void bar() {
+    if (x) {            // original implementation
+        if (y) {
+            // do stuff
+        }
+    }
+}
+
+void bar() {
+    if (x && y) {        // optimized implementation
+        // do stuff
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="CouplingBetweenObjectsRule"
+          language="java"
+          message="java.design.CollapsibleIfStatementsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.CouplingBetweenObjectsRule">
+        <description>java.design.CollapsibleIfStatementsRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="threshold" value="20"/>
+        </properties>
+        <example>
+            <![CDATA[
+import com.Blah;
+import org.Bar;
+import org.Bardo;
+
+public class Foo {
+    private Blah var1;
+    private Bar var2;
+
+    //followed by many imports of unique objects
+    ObjectC doWork() {
+        Bardo var55;
+        ObjectA var44;
+        ObjectZ var93;
+        return something();
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="FinalFieldCouldBeStaticRule"
+          language="java"
+          message="java.design.FinalFieldCouldBeStaticRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.FinalFieldCouldBeStaticRule">
+        <description>java.design.FinalFieldCouldBeStaticRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//FieldDeclaration
+ [@Final=true() and @Static=false()]
+ [not(preceding-sibling::Annotation/MarkerAnnotation/Name[@Image="Builder.Default"]
+    and //ImportDeclaration/Name[@Image="lombok.Builder"])]
+/VariableDeclarator
+ [VariableInitializer/Expression/PrimaryExpression[not(PrimarySuffix)]
+  /PrimaryPrefix/*
+    [
+        self::Literal (: literal :)
+        or
+        (: another static field :)
+        self::Name[@Image=//FieldDeclaration[@Static=true()]/VariableDeclarator/@Name]
+        or
+        (:unnecessary parenthesis :)
+        self::Expression/PrimaryExpression/PrimaryPrefix/Literal
+        or
+        (:empty array allocation :)
+        self::AllocationExpression[ArrayDimsAndInits/Expression/PrimaryExpression/PrimaryPrefix/*
+            [
+                self::Literal[@IntLiteral = true()][@Image="0"]
+                or
+                self::Expression/PrimaryExpression/PrimaryPrefix/Literal[@IntLiteral = true()][@Image="0"]
+            ]
+        ]
+    ]
+ ]
+/VariableDeclaratorId
+  [not(@Image = //MethodDeclaration[@Static = false()]//SynchronizedStatement/Expression/PrimaryExpression/
+      (PrimaryPrefix/Name|PrimarySuffix[preceding-sibling::PrimaryPrefix[@ThisModifier = true()]])/@Image)]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+  public final int BAR = 42; // this could be static and save some space
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="ImmutableFieldRule"
+          language="java"
+          message="java.design.ImmutableFieldRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.ImmutableFieldRule">
+        <description>java.design.ImmutableFieldRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+  private int x; // could be final
+  public Foo() {
+      x = 7;
+  }
+  public void foo() {
+     int a = x + 2;
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="LogicInversionRule"
+          language="java"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.LogicInversionRule"
+          message="java.design.LogicInversionRule.rule.msg">
+        <description>java.design.LogicInversionRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//UnaryExpressionNotPlusMinus[@Image='!']/PrimaryExpression/PrimaryPrefix/Expression[EqualityExpression or RelationalExpression]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public boolean bar(int a, int b) {
+
+    if (!(a == b)) { // use !=
+         return false;
+     }
+
+    if (!(a < b)) { // use >=
+         return false;
+    }
+
+    return true;
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="MutableStaticStateRule"
+          language="java"
+          message="java.design.MutableStaticStateRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.LogicInversionRule">
+        <description>java.design.MutableStaticStateRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//FieldDeclaration[@Static = true() and @Private = false() and @Final = false()]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Greeter { public static Foo foo = new Foo(); ... }       // avoid this
+public class Greeter { public static final Foo FOO = new Foo(); ... } // use this instead
+]]>
+        </example>
+    </rule>
+
+    <rule name="NcssCountRule"
+          language="java"
+          message="java.design.NcssCountRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.NcssCountRule">
+        <description>java.design.NcssCountRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="methodReportLevel" value="80"/>
+            <property name="classReportLevel" value="1500"/>
+            <property name="ncssOptions" value=""/>
+        </properties>
+        <example>
+            <![CDATA[
+import java.util.Collections;       // +0
+import java.io.IOException;         // +0
+
+class Foo {                         // +1, total Ncss = 12
+
+  public void bigMethod()           // +1
+      throws IOException {
+    int x = 0, y = 2;               // +1
+    boolean a = false, b = true;    // +1
+
+    if (a || b) {                   // +1
+      try {                         // +1
+        do {                        // +1
+          x += 2;                   // +1
+        } while (x < 12);
+
+        System.exit(0);             // +1
+      } catch (IOException ioe) {   // +1
+        throw new PatheticFailException(ioe); // +1
+      }
+    } else {
+      assert false;                 // +1
+    }
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="NPathComplexityRule"
+          language="java"
+          message="java.design.NPathComplexityRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.NPathComplexityRule">
+        <description>java.design.NPathComplexityRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="reportLevel" value="200"/>
+        </properties>
+        <example>
+            <![CDATA[
+desc see detail:https://git.dev.sh.ctripcorp.com/flight-mobile/flight-mobile-new-pmd/
+-/blob/release/pmd-java/README.md#NPathComplexityRule
+
+public class Foo {
+  public static void bar() { // Ncss = 252: reported!
+    boolean a, b = true;
+    try { // 2 * 2 + 2 = 6
+      if (true) { // 2
+        List buz = new ArrayList();
+      }
+
+      for(int i = 0; i < 19; i++) { // * 2
+        List buz = new ArrayList();
+      }
+    } catch(Exception e) {
+      if (true) { // 2
+        e.printStackTrace();
+      }
+    }
+
+    while (j++ < 20) { //  * 2
+      List buz = new ArrayList();
+    }
+
+    switch(j) { // * 7
+      case 1:
+      case 2: break;
+      case 3: j = 5; break;
+      case 4: if (b && a) { bar(); } break;
+      default: break;
+    }
+
+    do { // * 3
+        List buz = new ArrayList();
+    } while (a && j++ < 30);
+  }
+}
+ ]]>
+        </example>
+    </rule>
+
+    <rule name="SimplifiedTernaryRule"
+          language="java"
+          message="java.design.SimplifiedTernaryRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.SimplifiedTernaryRule">
+        <description>java.design.SimplifiedTernaryRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//ConditionalExpression
+  [(Expression|.)/PrimaryExpression/*/Literal/BooleanLiteral and count((Expression|.)/PrimaryExpression/*/Literal/BooleanLiteral)=2]
+  [not((Expression|.)/PrimaryExpression/*/Literal/NullLiteral)]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    public boolean test() {
+        return condition ? true : false; // can be as simple as return condition;
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="SimplifyBooleanExpressionsRule"
+          language="java"
+          message="java.design.SimplifyBooleanExpressionsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.SimplifyBooleanExpressionsRule">
+        <description>java.design.SimplifyBooleanExpressionsRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//EqualityExpression/PrimaryExpression
+ /PrimaryPrefix/Literal/BooleanLiteral
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Bar {
+  // can be simplified to
+  // bar = isFoo();
+  private boolean bar = (isFoo() == true);
+
+  public isFoo() { return false;}
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="SimplifyBooleanReturnsRule"
+          language="java"
+          since="0.9"
+          message="java.design.SimplifyBooleanReturnsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.SimplifyBooleanReturnsRule">
+        <description>java.design.SimplifyBooleanReturnsRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public boolean isBarEqualTo(int x) {
+    if (bar == x) {      // this bit of code...
+        return true;
+    } else {
+        return false;
+    }
+}
+
+public boolean isBarEqualTo(int x) {
+    return bar == x;    // can be replaced with this
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="SimplifyConditionalRule"
+          language="java"
+          message="java.design.SimplifyConditionalRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.SimplifyConditionalRule">
+        <description>java.design.SimplifyConditionalRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//Expression
+ [ConditionalOrExpression
+ [EqualityExpression[@Image='==']
+  //NullLiteral
+  and
+  UnaryExpressionNotPlusMinus
+   [@Image='!']//InstanceOfExpression[PrimaryExpression
+     //Name/@Image = ancestor::ConditionalOrExpression/EqualityExpression
+      /PrimaryExpression/PrimaryPrefix/Name/@Image]
+  and
+  (count(UnaryExpressionNotPlusMinus) + 1 = count(*))
+ ]
+or
+ConditionalAndExpression
+ [EqualityExpression[@Image='!=']//NullLiteral
+ and
+InstanceOfExpression
+ [PrimaryExpression[not(PrimarySuffix[@ArrayDereference= true()])]
+  //Name[not(contains(@Image,'.'))]/@Image = ancestor::ConditionalAndExpression
+   /EqualityExpression/PrimaryExpression/PrimaryPrefix/Name/@Image]
+ and
+(count(InstanceOfExpression) + 1 = count(*))
+ ]
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+  void bar(Object x) {
+    if (x != null && x instanceof Bar) {
+      // just drop the "x != null" check
+    }
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="SingularFieldRule"
+          language="java"
+          message="java.design.SingularFieldRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.SingularFieldRule">
+        <description>java.design.SingularFieldRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="ignoredAnnotations"
+                      value="lombok.Setter|lombok.Getter|lombok.Builder|lombok.Data|lombok.RequiredArgsConstructor|lombok.AllArgsConstructor|lombok.Value|lombok.NoArgsConstructor|lombok.experimental.Delegate|lombok.EqualsAndHashCode"/>
+            <property name="checkInnerClasses" value="false"/>
+            <property name="disallowNotAssignment" value="false"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private int x;  // no reason to exist at the Foo instance level
+    public void foo(int y) {
+     x = y + 5;
+     return x;
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="SwitchDensityRule"
+          language="java"
+          message="java.design.SwitchDensityRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.SwitchDensityRule">
+        <description>java.design.SwitchDensityRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="minimum" value="10.0"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+  public void bar(int x) {
+    switch (x) {
+      case 1: {
+        // lots of statements
+        break;
+      } case 2: {
+        // lots of statements
+        break;
+      }
+    }
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="TooManyFieldsRule"
+          language="java"
+          message="java.design.TooManyFieldsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.TooManyFieldsRule">
+        <description>java.design.TooManyFieldsRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="maxfields" value="30"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Person {   // too many separate fields
+   int birthYear;
+   int birthMonth;
+   int birthDate;
+   float height;
+   float weight;
+}
+
+public class Person {   // this is more manageable
+   Date birthDate;
+   BodyMeasurements measurements;
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="TooManyMethodsRule"
+          language="java"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.TooManyMethodsRule"
+          message="java.design.TooManyMethodsRule.rule.msg">
+        <description>java.design.TooManyMethodsRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="maxmethods" type="Integer" description="The method count reporting threshold" min="1"
+                      max="1000" value="45"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+ //ClassOrInterfaceDeclaration/ClassOrInterfaceBody
+     [
+      count(./ClassOrInterfaceBodyDeclaration/MethodDeclaration[
+         not (
+                (starts-with(@Name,'get') or starts-with(@Name,'set') or starts-with(@Name,'is'))
+                and
+                count(Block/BlockStatement) <= 1
+            )
+      ]) > $maxmethods
+   ]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+            public void method() { // +1
+
+            }
+
+            private void privateMethod() { // +1
+
+            }
+
+            public void setValue(String s) { // un total +0
+
+            }
+
+            public String getValue() { // un total +0
+
+            }
+
+            public void setValue(String s) { // +1
+                if(s != null) {
+                    this.s = s;
+                }else {
+                    this.s = "";
+                }
+            }
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="UselessOverridingMethodRule"
+          language="java"
+          message="java.design.UselessOverridingMethodRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.UselessOverridingMethodRule">
+        <description>java.design.UselessOverridingMethodRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="ignoreAnnotations" value="false"/>
+        </properties>
+        <example>
+            <![CDATA[
+public void foo(String bar) {
+    super.foo(bar);      // why bother overriding?
+}
+
+public String foo() {
+    return super.foo();  // why bother overriding?
+}
+
+@Id
+public Long getId() {
+    return super.getId();  // OK if 'ignoreAnnotations' is false, which is the default behavior
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="UseObjectForClearerAPIRule"-->
+          <!--language="java"-->
+          <!--message="java.design.UseObjectForClearerAPIRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.UseObjectForClearerAPIRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.design.UseObjectForClearerAPIRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//MethodDeclaration[@Public=true()]/MethodDeclarator/FormalParameters[-->
+     <!--count(FormalParameter/Type/ReferenceType/ClassOrInterfaceType[@Image = 'String' and @Array=false()]) > 3-->
+<!--]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class MyClass {-->
+    <!--public void connect(String username,-->
+        <!--String pssd,-->
+        <!--String databaseName,-->
+        <!--String databaseAdress)-->
+        <!--// Instead of those parameters object-->
+        <!--// would ensure a cleaner API and permit-->
+        <!--// to add extra data transparently (no code change):-->
+        <!--// void connect(UserData data);-->
+    <!--{-->
+
+    <!--}-->
+
+    <!--// suggest-->
+    <!--public void connect(UserData userData){-->
+        <!--doSomething();-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="ExcessiveParameterListRule"
+          language="java"
+          message="java.design.ExcessiveParameterListRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.ExcessiveParameterListRule">
+        <description>java.design.ExcessiveParameterListRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="minimum" value="10.0"/>
+        </properties>
+        <example>
+            <![CDATA[
+public void addPerson(      // too many arguments liable to be mixed up
+    int birthYear, int birthMonth, int birthDate, int height, int weight, int ssn) {
+
+    . . . .
+}
+
+public void addPerson(      // preferred approach
+    Date birthdate, BodyMeasurements measurements, int ssn) {
+
+    . . . .
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="ExcessivePublicCountRule"
+          language="java"
+          message="java.design.ExcessivePublicCountRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.ExcessivePublicCountRule">
+        <description>java.design.ExcessivePublicCountRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="minimum" value="25.0"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    public String value;
+    public Bar something;
+    public Variable var;
+    // [... more more public attributes ...]
+
+    public void doWork() {}
+    public void doMoreWork() {}
+    public void doWorkAgain() {}
+    // [... more more public methods ...]
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="LawOfDemeterRule"-->
+          <!--language="java"-->
+          <!--message="java.design.LawOfDemeterRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.design.LawOfDemeterRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.design.LawOfDemeterRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="trustRadius" value="3"></property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class Foo {-->
+    <!--/**-->
+     <!--* This example will result in two violations.-->
+     <!--*/-->
+    <!--public void example(Bar b) {-->
+        <!--// this method call is ok, as b is a parameter of "example" default trustRadius is 3-->
+        <!--C c = b.getA().getB().getC();-->
+
+        <!--// this method call is a violation, as we are using c, which we got from B.-->
+        <!--// We should ask b directly instead, e.g. "b.doItOnC();"-->
+        <!--c.doIt();-->
+
+        <!--// this is also a violation, just expressed differently as a method chain without temporary variables.-->
+        <!--b.getA().getB().getC().doIt();-->
+
+        <!--// a constructor call, not a method call.-->
+        <!--D d = new D();-->
+        <!--// this method call is ok, because we have create the new instance of D locally.-->
+        <!--d.doSomethingElse();-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+</ruleset>

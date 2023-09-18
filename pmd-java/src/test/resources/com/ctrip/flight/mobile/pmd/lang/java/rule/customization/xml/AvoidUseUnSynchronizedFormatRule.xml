@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>bad use SimpleDateFormat and not use synchronized</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // incorrect
+    private static final SimpleDateFormat sdf = new SimpleDateFormat();
+    void foo() {
+        sdf.format();
+        sdf.parse();
+
+    }
+}
+]]></code>
+    </test-code>
+
+
+    <test-code>
+        <description>ok use SimpleDateFormat but not contain forbidden method</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // correct
+    private static final SimpleDateFormat sdf = new SimpleDateFormat();
+    void foo() {
+        sdf.getCalendar();
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok use SimpleDateFormat and synchronized</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // correct
+    private static final SimpleDateFormat sdf = new SimpleDateFormat();
+    void foo() {
+        synchronized(sdf){
+            sdf.format();
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok use local variable SimpleDateFormat and not static SimpleDateFormat</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // correct
+    void foo() {
+        SimpleDateFormat sdf = new SimpleDateFormat();
+        sdf.format();
+    }
+
+    private final SimpleDateFormat sdf = new SimpleDateFormat();
+    void foo2() {
+        sdf.format();
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok use FastDateFormat</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // correct
+    private static final FastDateFormat format = FastDateFormat.getInstance();
+    void foo() {
+        format.format();
+        format.parse();
+    }
+}
+]]></code>
+    </test-code>
+
+
+    <test-code>
+        <description>ok use SimpleDateFormat and synchronized</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // incorrect
+    private static final SimpleDateFormat sdf = new SimpleDateFormat();
+    static synchronized void foo() {
+        sdf.format();
+        sdf.parse();
+
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>NumberFormatters should be detected</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import java.text.DecimalFormat;
+
+public class Foo {
+    private static final DecimalFormat decimalFormat = new DecimalFormat();
+    void bar() {
+        decimalFormat.format();
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>MessageFormatters should be detected</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import java.text.MessageFormat;
+
+public class Foo {
+    private static final MessageFormat messageFormat = new MessageFormat();
+    void bar() {
+        messageFormat.format();
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Use DateFormat, not ok</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import java.text.DateFormat;
+
+public class Foo {
+    private static final DateFormat sdf = new DateFormat();
+    synchronized void bar() {
+        sdf.format();
+    }
+}
+        ]]></code>
+    </test-code>
+</test-data>

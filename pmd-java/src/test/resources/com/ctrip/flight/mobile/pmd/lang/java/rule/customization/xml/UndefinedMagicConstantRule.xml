@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>magic constant</description>
+        <expected-problems>1</expected-problems>
+        <expected-linenumbers>3</expected-linenumbers>
+        <expected-messages>
+            <message>避免魔法值'ctrip'.</message>
+        </expected-messages>
+        <code><![CDATA[
+public class Foo {
+    void bar(String key) {
+        if (key.equals("ctrip")) {
+            //...
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>non magic constant</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    void bar(String key) {
+        String KEY_PRE = "ctrip";
+        if (KEY_PRE.equals(key)) {
+            //...
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>white literal</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    void bar(Integer key) {
+        if (key.equals(1)) {
+            //...
+        }
+    }
+
+    void bar2(String key) {
+        if (key.equals("")) {
+            //...
+        }
+    }
+
+    void bar3(Long key) {
+        if (key.equals(1L)) {
+            //...
+        }
+    }
+}
+        ]]></code>
+    </test-code>
+
+</test-data>

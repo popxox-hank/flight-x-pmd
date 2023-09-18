@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>failure case</description>
+        <rule-property name="maxLine">10</rule-property>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+        public class Foo {
+            public void foo() {
+                List<String> stringList = new ArrayList();
+                // comment 1
+                stringList.add("1");
+                List<String> filterList = stringList
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .filter(x -> Objects.equals("1", x))
+                    .map(x-> {
+                        // comment 2
+                        String testValue = "";
+                        /**
+                        * comment 3
+                        **/
+                        if(Objects.equals("1",x)) {
+                            testValue = "yes";
+                        }
+                        return testValue;
+                    })
+                    .collect(Collectors.toList());
+            }
+        }
+            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>success case</description>
+        <rule-property name="maxLine">10</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+        public class Foo {
+            public void foo() {
+                List<String> stringList = new ArrayList();
+                // comment 1
+                stringList.add("1");
+                List<String> filterList = stringList
+                    .stream()
+                    // comment 2
+                    .filter(Objects::nonNull)
+                    /**
+                    * comment 3
+                    **/
+                    .filter(x -> Objects.equals("1", x))
+                    .collect(Collectors.toList());
+            }
+        }
+            ]]></code>
+    </test-code>
+</test-data>

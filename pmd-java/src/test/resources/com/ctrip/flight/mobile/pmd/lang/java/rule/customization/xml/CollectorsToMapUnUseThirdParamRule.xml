@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        private Map<String, String> convertExtensionOptions(List<KeyValuePairType> source) {
+            return source.stream()
+                .filter(Objects::nonNull)
+                .filter(keyValue -> StringUtils.hasText(keyValue.getKey())
+                    && Objects.nonNull(keyValue.getValue()))
+                .collect(Collectors.toMap(KeyValuePairType::getKey, KeyValuePairType::getValue, (key1, key2) -> key1));
+        }
+    }]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad unUse third parameter</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        private Map<String, String> convertExtensionOptions(List<KeyValuePairType> source) {
+            return source.stream()
+                .filter(Objects::nonNull)
+                .filter(keyValue -> StringUtils.hasText(keyValue.getKey())
+                    && Objects.nonNull(keyValue.getValue()))
+                .collect(Collectors.toConcurrentMap(KeyValuePairType::getKey, KeyValuePairType::getValue));
+        }
+    }]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        private Map<String, String> convertExtensionOptions(List<KeyValuePairType> source) {
+            return getStream().collect(
+            Collectors.toConcurrentMap(KeyValuePairType::getKey, KeyValuePairType::getValue, (key1, key2) -> key1));
+        }
+
+        private Stream<KeyValuePairType> getStream() {
+        }
+    }]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad unUse third parameter</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        private Map<String, String> convertExtensionOptions(List<KeyValuePairType> source) {
+            return getStream()
+                .collect(Collectors.toConcurrentMap(KeyValuePairType::getKey, KeyValuePairType::getValue));
+        }
+
+        private Stream<KeyValuePairType> getStream(){
+        }
+    }]]></code>
+    </test-code>
+</test-data>

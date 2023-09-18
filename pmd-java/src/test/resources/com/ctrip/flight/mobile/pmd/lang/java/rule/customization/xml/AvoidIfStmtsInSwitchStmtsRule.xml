@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>failure</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+  public void foo(InputModel inputModel) {
+        switch (inputModel.getTitle()) {
+            case "Test1":
+                if (StringUtils.isNotEmpty(inputModel.getContent())) {
+                    //doSomething()
+                    return;
+                } else {
+                    //doSomething()
+                    return;
+                }
+            case "unit1":
+                if (Objects.equals(inputModel.getContent(), "unitContent")) {
+                    //doSomething()
+                } else {
+                    //doSomething()
+                }
+                break;
+             default:
+                 //doSomething()
+        }
+  }
+
+  class InputModel {
+        private String title;
+        private String content;
+
+        String getTitle() {
+            return title;
+        }
+
+        void setTitle(String title) {
+            this.title = title;
+        }
+
+        String getContent() {
+            return content;
+        }
+
+        void setContent(String content) {
+            this.content = content;
+        }
+  }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>success</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+  public Foo(String input) {
+     switch (input) {
+            case "Test1":
+                return "1";
+            case "unit1":
+                return "2";
+             default:
+                 return "3";
+        }
+  }
+}
+        ]]></code>
+    </test-code>
+</test-data>

@@ -1,0 +1,663 @@
+<?xml version="1.0"?>
+
+<ruleset name="bestpractices" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+    <description>FlightXJavaBestPractices</description>
+
+    <!--<rule name="AbstractClassWithoutAbstractMethodRule"-->
+          <!--message="java.best.practices.AbstractClassWithoutAbstractMethodRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.AbstractClassWithoutAbstractMethodRule"-->
+          <!--language="java"-->
+          <!--deprecated="true">-->
+        <!--<description>java.best.practices.AbstractClassWithoutAbstractMethodRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--Negative example:-->
+            <!--public abstract class Foo {-->
+              <!--int method1() { ... }-->
+              <!--int method2() { ... }-->
+            <!--}-->
+        <!--]]>-->
+        <!--</example>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--Positive example:-->
+            <!--public abstract class Foo {-->
+              <!--void int method1() { ... }-->
+              <!--/**-->
+               <!--* xxx desc-->
+               <!--*/-->
+              <!--protected abstract int method2();-->
+            <!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="AvoidReassigningCatchVariablesRule"-->
+          <!--language="java"-->
+          <!--message="java.best.practices.AvoidReassigningCatchVariables.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.AvoidReassigningCatchVariablesRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.best.practices.AvoidReassigningCatchVariables.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example><![CDATA[-->
+<!--public class Foo {-->
+    <!--public void foo() {-->
+        <!--try {-->
+            <!--// do something-->
+        <!--} catch (Exception e) {-->
+            <!--e = new NullPointerException(); // not recommended-->
+        <!--}-->
+
+        <!--try {-->
+            <!--// do something-->
+        <!--} catch (MyException | ServerException e) {-->
+            <!--e = new RuntimeException(); // won't compile-->
+        <!--}-->
+    <!--}-->
+<!--}-->
+        <!--]]></example>-->
+    <!--</rule>-->
+
+    <rule name="AvoidReassigningLoopVariablesRule"
+          language="java"
+          message="java.best.practices.AvoidReassigningLoopVariablesRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.AvoidReassigningLoopVariablesRule">
+        <description>java.best.practices.AvoidReassigningLoopVariablesRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="foreachReassign" value="deny"/>
+            <property name="forReassign" value="deny"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+  private void foo() {
+    for (String s : listOfStrings()) {
+      s = s.trim(); // OK, when foreachReassign is "firstOnly" or "allow"
+      doSomethingWith(s);
+
+      s = s.toUpper(); // OK, when foreachReassign is "allow"
+      doSomethingElseWith(s);
+    }
+
+    for (int i=0; i < 10; i++) {
+      if (check(i)) {
+        i++; // OK, when forReassign is "skip" or "allow"
+      }
+
+      i = 5;  // OK, when forReassign is "allow"
+
+      doSomethingWith(i);
+    }
+
+    for (int i=0; i < 10; i++) {
+      if (check(i)) {
+        i++; // false,when forReassign is "deny"
+      }
+      doSomethingWith(i);
+    }
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidReassigningParametersRule"
+          language="java"
+          message="java.best.practices.AvoidReassigningParametersRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.AvoidReassigningParametersRule">
+        <description>java.best.practices.AvoidReassigningParametersRule.rule.desc</description>
+        <priority>2</priority>
+        <example>
+            <![CDATA[
+public class Hello {
+  private void greet(String name) {
+    name = name.trim();
+    System.out.println("Hello " + name);
+
+    // preferred
+    String trimmedName = name.trim();
+    System.out.println("Hello " + trimmedName);
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidStringBufferFieldRule"
+          language="java"
+          message="java.best.practices.AvoidStringBufferFieldRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.AvoidStringBufferFieldRule">
+        <description>java.best.practices.AvoidStringBufferFieldRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[@Image = 'StringBuffer' or @Image = 'StringBuilder']
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private StringBuffer buffer;    // potential memory leak as an instance variable;
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="ConstantInterfaceRule"
+          language="java"
+          message="java.best.practices.ConstantInterfaceRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.ConstantInterfaceRule">
+        <description>java.best.practices.ConstantInterfaceRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="ignoreIfHasMethods" type="Boolean"
+                      description="Whether to ignore constants in interfaces if the interface defines any methods"
+                      value="true"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//ClassOrInterfaceDeclaration[@Interface= true()][$ignoreIfHasMethods= false() or not(.//MethodDeclaration)]//FieldDeclaration
+ ]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public interface ConstantInterface {
+    public static final int CONST1 = 1; // violation, no fields allowed in interface!
+    static final int CONST2 = 1;        // violation, no fields allowed in interface!
+    final int CONST3 = 1;               // violation, no fields allowed in interface!
+    int CONST4 = 1;                     // violation, no fields allowed in interface!
+}
+
+// with ignoreIfHasMethods = false
+public interface AnotherConstantInterface {
+    public static final int CONST1 = 1; // violation, no fields allowed in interface!
+
+    int anyMethod();
+}
+
+// with ignoreIfHasMethods = true
+public interface YetAnotherConstantInterface {
+    public static final int CONST1 = 1; // no violation
+
+    int anyMethod();
+}
+ ]]>
+        </example>
+    </rule>
+
+    <rule name="DefaultLabelNotLastInSwitchStmtRule"
+          language="java"
+          since="1.5"
+          message="java.best.practices.DefaultLabelNotLastInSwitchStmtRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.DefaultLabelNotLastInSwitchStmtRule">
+        <description>java.best.practices.DefaultLabelNotLastInSwitchStmtRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//SwitchStatement
+ [not(SwitchLabel[position() = last()][@Default= true()])]
+ [SwitchLabel[@Default= true()]]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+  void bar(int a) {
+   switch (a) {
+    case 1:  // do something
+       break;
+    default:  // the default case should be last, by convention
+       break;
+    case 2:
+       break;
+   }
+  }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="DoubleBraceInitializationRule"
+          language="java"
+          message="java.best.practices.DoubleBraceInitializationRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.DoubleBraceInitializationRule">
+        <description>java.best.practices.DoubleBraceInitializationRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration[not(starts-with(@Name, 'test') or ends-with(@Name, 'Test') or ends-with(@Name, 'Tests') or ends-with(@Name, 'TestCase'))]//PrimaryExpression//AllocationExpression/ClassOrInterfaceBody[count(*)=1]//Initializer[@Static=false()]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example><![CDATA[
+// this is double-brace initialization
+return new ArrayList<String>(){{
+    add("a");
+    add("b");
+    add("c");
+}};
+
+// the better way is to not create an anonymous class:
+List<String> a = new ArrayList<>();
+a.add("a");
+a.add("b");
+a.add("c");
+return a;
+
+// if jdk 9 like this
+List<String> a = List.of("a", "b", "c");
+]]>
+        </example>
+    </rule>
+
+    <rule name="ForLoopVariableCountRule"
+          language="java"
+          message="java.best.practices.ForLoopVariableCountRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.ForLoopVariableCountRule">
+        <description>java.best.practices.ForLoopVariableCountRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="maximumVariables" type="Integer"
+                      description="A regular for statement will have 1 control variable" min="0" max="100" value="1"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>//ForInit/LocalVariableDeclaration[count(VariableDeclarator) > $maximumVariables]</value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+// this will be reported with the default setting of at most one control variable in a for loop
+for (int i = 0, j = 0; i < 10; i++, j += 2) {
+   foo();
+]]>
+        </example>
+    </rule>
+
+    <rule name="JUnitTestsShouldIncludeAssertRule"
+          language="java"
+          since="2.0"
+          message="java.best.practices.JUnitTestsShouldIncludeAssertRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.JUnitTestsShouldIncludeAssertRule">
+        <description>java.best.practices.JUnitTestsShouldIncludeAssertRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo extends TestCase {
+   public void testSomething() {
+      Bar b = findBar();
+   // This is better than having a NullPointerException
+   // assertNotNull("bar not found", b);
+   b.work();
+   }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="EqualsAvoidNullRule"
+          language="java"
+          since="6.24.0"
+          message="java.best.practices.EqualsAvoidNullRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.EqualsAvoidNullRule">
+        <description>java.best.practices.EqualsAvoidNullRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+class Foo {
+    boolean bar(String x) {
+        return x.equals("2"); // should be "2".equals(x)
+    }
+    boolean bar(String x) {
+        return x.equalsIgnoreCase("2"); // should be "2".equalsIgnoreCase(x)
+    }
+    boolean bar(Integer x) {
+        return x.equals(128); // should be: 128.equals(x)
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="MethodReturnsInternalArrayRule"-->
+          <!--language="java"-->
+          <!--message="java.best.practices.MethodReturnsInternalArrayRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.MethodReturnsInternalArrayRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.best.practices.MethodReturnsInternalArrayRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class SecureSystem {-->
+    <!--UserData [] ud;-->
+    <!--public UserData [] getUserData() {-->
+        <!--// Don't return directly the internal array, return a copy-->
+        <!--return ud;-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="PrimitiveWrapperInstantiationRule"-->
+          <!--language="java"-->
+          <!--message="java.best.practices.PrimitiveWrapperInstantiationRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.PrimitiveWrapperInstantiationRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.best.practices.PrimitiveWrapperInstantiationRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+            <!--public class Foo {-->
+                <!--private Integer ZERO = new Integer(0);      // violation-->
+                <!--private Integer ZERO1 = Integer.valueOf(0); // better-->
+                <!--private Integer ZERO1 = 0;                  // even better-->
+            <!--}-->
+            <!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="UnusedFormalParameterRule"
+          language="java"
+          message="java.best.practices.UnusedFormalParameterRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.UnusedFormalParameterRule">
+        <description>java.best.practices.UnusedFormalParameterRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="checkAll" value="false" />
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    private void bar(String howdy) {
+        // howdy is not used
+    }
+
+    public Foo(String howdy) {
+       // howdy is not used
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UnusedLocalVariableRule"
+          language="java"
+          message="java.best.practices.UnusedLocalVariableRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.UnusedLocalVariableRule">
+        <description>java.best.practices.UnusedLocalVariableRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+    public void doSomething() {
+        int i = 5; // Unused
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UnusedPrivateFieldRule"
+          language="java"
+          message="java.best.practices.UnusedPrivateFieldRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.UnusedPrivateFieldRule">
+        <description>java.best.practices.UnusedPrivateFieldRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="ignoredFieldNames" value="serialVersionUID|serialPersistentFields"/>
+            <property name="reportForAnnotations" value=""/>
+            <property name="ignoredAnnotations"
+                      value="lombok.Data|lombok.Value|lombok.Builder|lombok.NoArgsConstructor|lombok.RequiredArgsConstructor|lombok.AllArgsConstructor"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Something {
+    private static int FOO = 2; // Unused
+    private int i = 5; // Unused
+    private int j = 6;
+    public int addOne() {
+        return j++;
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UnusedPrivateMethodRule"
+          language="java"
+          message="java.best.practices.UnusedPrivateMethodRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.UnusedPrivateMethodRule">
+        <description>java.best.practices.UnusedPrivateMethodRule.rule.desc</description>
+        <priority>4</priority>
+        <example>
+            <![CDATA[
+public class Something {
+    private void foo() {} // unused
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="UseCollectionIsEmptyRule"-->
+          <!--language="java"-->
+          <!--message="java.best.practices.UseCollectionIsEmptyRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.UseCollectionIsEmptyRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.best.practices.UseCollectionIsEmptyRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class Foo {-->
+    <!--void good() {-->
+        <!--List foo = getList();-->
+        <!--if (foo.isEmpty()) {-->
+            <!--// blah-->
+        <!--}-->
+    <!--}-->
+
+    <!--void bad() {-->
+        <!--List foo = getList();-->
+        <!--if (foo.size() == 0) {-->
+            <!--// blah-->
+        <!--}-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="UseStandardCharsetsRule"-->
+          <!--language="java"-->
+          <!--message="java.best.practices.UseStandardCharsetsRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.UseStandardCharsetsRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.best.practices.UseStandardCharsetsRule.rule.desc</description>-->
+        <!--<priority>4</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//PrimaryExpression[PrimaryPrefix/Name/@Image = 'Charset.forName']-->
+    <!--/PrimarySuffix/Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix-->
+        <!--/Literal[@Image = ('"US-ASCII"', '"ISO-8859-1"', '"UTF-8"', '"UTF-16BE"', '"UTF-16LE"', '"UTF-16"')]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class UseStandardCharsets {-->
+    <!--public void run() {-->
+
+        <!--// looking up the charset dynamically-->
+        <!--try (OutputStreamWriter osw = new OutputStreamWriter(out, Charset.forName("UTF-8"))) {-->
+            <!--osw.write("test");-->
+        <!--}-->
+
+        <!--// best to use StandardCharsets-->
+        <!--try (OutputStreamWriter osw = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {-->
+            <!--osw.write("test");-->
+        <!--}-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="UseTryWithResourcesRule"-->
+          <!--language="java"-->
+          <!--typeResolution="true"-->
+          <!--message="java.best.practices.UseTryWithResourcesRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.UseTryWithResourcesRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.best.practices.UseTryWithResourcesRule.rule.desc</description>-->
+        <!--<priority>4</priority>-->
+        <!--<properties>-->
+            <!--<property name="closeMethods" value="close,closeQuietly"/>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class TryWithResources {-->
+    <!--public void run() {-->
+        <!--InputStream in = null;-->
+        <!--try {-->
+            <!--in = openInputStream();-->
+            <!--int i = in.read();-->
+        <!--} catch (IOException e) {-->
+            <!--e.printStackTrace();-->
+        <!--} finally {-->
+            <!--try {-->
+                <!--if (in != null) in.close();-->
+            <!--} catch (IOException ignored) {-->
+                <!--// ignored-->
+            <!--}-->
+        <!--}-->
+
+        <!--// better use try-with-resources-->
+        <!--try (InputStream in2 = openInputStream()) {-->
+            <!--int i = in2.read();-->
+        <!--}-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="UnusedAssignmentRule"
+          language="java"
+          message="java.best.practices.UnusedAssignmentRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.bestpractices.UnusedAssignmentRule">
+        <description>java.best.practices.UnusedAssignmentRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+            class A {
+                // this field initializer is redundant,
+                // it is always overwritten in the constructor
+                int f = 1;
+
+                A(int f) {
+                    this.f = f;
+                }
+            }
+        ]]>
+        </example>
+        <example><![CDATA[
+class B {
+
+    int method(int i, int j) {
+        // this initializer is redundant,
+        // it is overwritten in all branches of the `if`
+        int k = 0;
+
+        // Both the assignments to k are unused, because k is
+        // not read after the if/else
+        // This may hide a bug: the programmer probably wanted to return k
+        if (i < j)
+            k = i;
+        else
+            k = j;
+
+        return j;
+    }
+
+}
+        ]]>
+
+        </example>
+        <example><![CDATA[
+class C {
+
+    int method() {
+        int i = 0;
+
+        checkSomething(++i);
+        checkSomething(++i);
+        checkSomething(++i);
+        checkSomething(++i);
+
+        // That last increment is not reported unless
+        // the property `checkUnusedPrefixIncrement` is
+        // set to `true`
+        // Technically it could be written (i+1), but it
+        // is not very important
+    }
+
+}
+        ]]>
+
+        </example>
+        <example><![CDATA[
+class C {
+
+    // variables that are truly unused (at most assigned to, but never accessed)
+    // are only reported if property `reportUnusedVariables` is true
+
+    void method(int param) { } // for example this method parameter
+
+    // even then, you can suppress the violation with an annotation:
+
+    void method(@SuppressWarning("unused") int param) { } // no violation, even if `reportUnusedVariables` is true
+
+    // For catch parameters, or for resources which don't need to be used explicitly,
+    // you can give a name that starts with "ignored" to ignore such warnings
+
+    {
+        try (Something ignored = Something.create()) {
+            // even if ignored is unused, it won't be flagged
+            // its purpose might be to side-effect in the create/close routines
+
+        } catch (Exception e) { // this is unused and will cause a warning if `reportUnusedVariables` is true
+            // you should choose a name that starts with "ignored"
+            return;
+        }
+    }
+
+}
+        ]]>
+
+        </example>
+    </rule>
+</ruleset>

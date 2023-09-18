@@ -1,0 +1,877 @@
+<?xml version="1.0"?>
+
+<ruleset name="errorprone"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Rules to detect constructs that are either broken, extremely confusing or prone to runtime errors.
+    </description>
+
+    <rule name="AssignmentInOperandRule"
+          language="java"
+          message="java.errorprone.AssignmentInOperandRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AssignmentInOperandRule">
+        <description>java.errorprone.AssignmentInOperandRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="allowIf" value="false"/>
+            <property name="allowFor" value="false"/>
+            <property name="allowWhile" value="false"/>
+            <property name="allowIncrementDecrement" value="false"/>
+        </properties>
+        <example>
+            <![CDATA[
+public void bar() {
+    int x = 2;
+    if ((x = getX()) == 3) {
+      System.out.println("3!");
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AssignmentToNonFinalStaticRule"
+          language="java"
+          message="java.errorprone.AssignmentToNonFinalStaticRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AssignmentToNonFinalStaticRule">
+        <description>java.errorprone.AssignmentToNonFinalStaticRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class StaticField {
+   static int x;
+   public FinalFields(int y) {
+    x = y; // unsafe
+   }
+
+   // it's ok
+   static final int x;
+   public FinalFields(int y) {
+    x = y;
+   }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidDecimalLiteralsInBigDecimalConstructorRule"
+          language="java"
+          message="java.errorprone.AvoidDecimalLiteralsInBigDecimalConstructorRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AvoidDecimalLiteralsInBigDecimalConstructorRule">
+        <description>java.errorprone.AvoidDecimalLiteralsInBigDecimalConstructorRule.rule.msg</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//AllocationExpression[pmd-java:typeIs('java.math.BigDecimal')]
+[Arguments/ArgumentList/Expression/PrimaryExpression
+    [
+        pmd-java:typeIs('float') or
+        pmd-java:typeIs('java.lang.Float') or
+        pmd-java:typeIs('double') or
+        pmd-java:typeIs('java.lang.Double')
+    ]
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+BigDecimal bd = new BigDecimal(1.123);       // loss of precision, this would trigger the rule
+
+BigDecimal bd = new BigDecimal("1.123");     // preferred approach
+
+BigDecimal bd = new BigDecimal(12);          // preferred approach, ok for integer values
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="AvoidDuplicateLiteralsRule"-->
+          <!--language="java"-->
+          <!--message="java.errorprone.AvoidDuplicateLiteralsRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AvoidDuplicateLiteralsRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.errorprone.AvoidDuplicateLiteralsRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="maxDuplicateLiterals" value="4"/>-->
+            <!--<property name="minimumLength" value="3"/>-->
+            <!--<property name="skipAnnotations" value="false"/>-->
+            <!--<property name="exceptionList" value=""/>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--private void bar() {-->
+     <!--buz("Howdy");-->
+     <!--buz("Howdy");-->
+     <!--buz("Howdy");-->
+     <!--buz("Howdy");-->
+<!--}-->
+<!--private void buz(String x) {}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="AvoidFieldNameMatchingMethodNameRule"
+          language="java"
+          message="java.errorprone.AvoidFieldNameMatchingMethodNameRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AvoidFieldNameMatchingMethodNameRule">
+        <description>java.errorprone.AvoidFieldNameMatchingMethodNameRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+    Object bar;
+    // bar is data or an action or both?
+    void bar() {
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidFieldNameMatchingTypeNameRule"
+          language="java"
+          since="3.0"
+          message="java.errorprone.AvoidFieldNameMatchingTypeNameRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AvoidFieldNameMatchingTypeNameRule">
+        <description>java.errorprone.AvoidFieldNameMatchingTypeNameRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo extends Bar {
+    int foo;    // There is probably a better name that can be used
+}
+public interface Operation {
+    int OPERATION = 1; // There is probably a better name that can be used
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidInstanceofChecksInCatchClauseRule"
+          language="java"
+          message="java.errorprone.AvoidInstanceofChecksInCatchClauseRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AvoidInstanceofChecksInCatchClauseRule">
+        <description>java.errorprone.AvoidInstanceofChecksInCatchClauseRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//CatchStatement/FormalParameter
+ /following-sibling::Block//InstanceOfExpression/PrimaryExpression/PrimaryPrefix
+  /Name[
+   @Image = ./ancestor::Block/preceding-sibling::FormalParameter
+    /VariableDeclaratorId/@Name
+  ]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+try { // Avoid this
+    // do something
+} catch (Exception ee) {
+    if (ee instanceof IOException) {
+        cleanup();
+    }
+}
+
+try {  // Prefer this:
+    // do something
+} catch (IOException ee) {
+    cleanup();
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="AvoidLiteralsInIfConditionRule"-->
+          <!--language="java"-->
+          <!--message="java.errorprone.AvoidLiteralsInIfConditionRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AvoidLiteralsInIfConditionRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.errorprone.AvoidLiteralsInIfConditionRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="ignoreMagicNumbers"-->
+                      <!--description="Comma-separated list of magic numbers, that should be ignored"-->
+                      <!--type="String" value="-1,0,1,0.0"/>-->
+            <!--<property name="ignoreExpressions"-->
+                      <!--description="If true, only literals in simple if conditions are considered. Otherwise literals in expressions are checked, too."-->
+                      <!--type="Boolean" value="true"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--(: simple case - no deep expressions :)-->
+<!--//IfStatement[$ignoreExpressions = true()]/Expression/*/PrimaryExpression/PrimaryPrefix/Literal-->
+    <!--[not(NullLiteral)]-->
+    <!--[not(BooleanLiteral)]-->
+    <!--[empty(index-of(tokenize($ignoreMagicNumbers, '\s*,\s*'), @Image))]-->
+<!--|-->
+<!--(: consider also deeper expressions :)-->
+<!--//IfStatement[$ignoreExpressions = false()]/Expression//*[local-name() != 'UnaryExpression' or @Operator != '-']/PrimaryExpression/PrimaryPrefix/Literal-->
+    <!--[not(NullLiteral)]-->
+    <!--[not(BooleanLiteral)]-->
+    <!--[empty(index-of(tokenize($ignoreMagicNumbers, '\s*,\s*'), @Image))]-->
+<!--|-->
+<!--(: consider negative literals :)-->
+<!--//IfStatement[$ignoreExpressions = false()]/Expression//UnaryExpression[@Operator = '-']/PrimaryExpression/PrimaryPrefix/Literal-->
+    <!--[not(NullLiteral)]-->
+    <!--[not(BooleanLiteral)]-->
+    <!--[empty(index-of(tokenize($ignoreMagicNumbers, '\s*,\s*'), concat('-', @Image)))]-->
+<!--|-->
+<!--(: consider multiple literals in expressions :)-->
+<!--//IfStatement[$ignoreExpressions = false()]/Expression[count(*/PrimaryExpression/PrimaryPrefix/Literal-->
+    <!--[not(NullLiteral)]-->
+    <!--[not(BooleanLiteral)]) > 1]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+            <!--<property name="version" value="2.0"/>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--private static final int MAX_NUMBER_OF_REQUESTS = 10;-->
+
+<!--public void checkRequests() {-->
+
+    <!--if (i == 10) {                        // magic number, buried in a method-->
+      <!--doSomething();-->
+    <!--}-->
+
+    <!--if (i == MAX_NUMBER_OF_REQUESTS) {    // preferred approach-->
+      <!--doSomething();-->
+    <!--}-->
+
+    <!--if (aString.indexOf('.') != -2) {}     // magic number -2, by default ignored-->
+    <!--if (aString.indexOf('.') >= 0) { }     // alternative approach-->
+
+    <!--if (aDouble > 0.1) {}                  // magic number 0.1-->
+    <!--if (aDouble >= Double.MIN_VALUE) {}    // preferred approach-->
+
+    <!--// with rule property "ignoreExpressions" set to "false"-->
+    <!--if (i == pos + 5) {}  // violation: magic number 5 within an (additive) expression-->
+    <!--if (i == pos + SUFFIX_LENGTH) {} // preferred approach-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="AvoidMultipleUnaryOperatorsRule"
+          language="java"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.AvoidMultipleUnaryOperatorsRule"
+          message="java.errorprone.AvoidMultipleUnaryOperatorsRule.rule.msg">
+        <description>java.errorprone.AvoidMultipleUnaryOperatorsRule.rule.desc</description>
+        <priority>2</priority>
+        <example>
+            <![CDATA[
+// These are typo bugs, or at best needlessly complex and confusing:
+int i = - -1;
+int j = + - +1;
+int z = ~~2;
+boolean b = !!true;
+boolean c = !!!true;
+
+// These are better:
+int i = 1;
+int j = -1;
+int z = 2;
+boolean b = true;
+boolean c = false;
+
+// And these just make your brain hurt:
+int i = ~-2;
+int j = -~7;
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="ClassCastExceptionWithToArrayRule"-->
+          <!--language="java"-->
+          <!--message="java.errorprone.ClassCastExceptionWithToArrayRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.ClassCastExceptionWithToArrayRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.errorprone.ClassCastExceptionWithToArrayRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//CastExpression[Type/ReferenceType/ClassOrInterfaceType[@Image != "Object"]]-->
+    <!--/PrimaryExpression-->
+    <!--[PrimaryPrefix/Name[ends-with(@Image, '.toArray')]]-->
+    <!--[PrimarySuffix/Arguments[not(*)]]-->
+    <!--[count(PrimarySuffix) = 1]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--Collection c = new ArrayList();-->
+<!--Integer obj = new Integer(1);-->
+<!--c.add(obj);-->
+
+    <!--// this would trigger the rule (and throw a ClassCastException if executed)-->
+<!--Integer[] a = (Integer [])c.toArray();-->
+
+   <!--// this is fine and will not trigger the rule-->
+<!--Integer[] b = (Integer [])c.toArray(new Integer[c.size()]);-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="CloneMethodMustBePublicRule"
+          language="java"
+          message="java.errorprone.CloneMethodMustBePublicRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.CloneMethodMustBePublicRule">
+        <description>java.errorprone.CloneMethodMustBePublicRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration[@Public= false()]
+  [@Name = 'clone']
+  [@Arity = 0]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo implements Cloneable {
+    @Override
+    protected Object clone() throws CloneNotSupportedException { // Violation, must be public
+    }
+}
+
+public class Foo implements Cloneable {
+    @Override
+    protected Foo clone() { // Violation, must be public
+    }
+}
+
+public class Foo implements Cloneable {
+    @Override
+    public Object clone() // Ok
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="CloneMethodReturnTypeMustMatchClassNameRule"
+          language="java"
+          message="java.errorprone.CloneMethodReturnTypeMustMatchClassNameRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.CloneMethodReturnTypeMustMatchClassNameRule">
+        <description>java.errorprone.CloneMethodReturnTypeMustMatchClassNameRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration
+[
+@Name = 'clone'
+and @Arity = 0
+and not (ResultType//ClassOrInterfaceType/@Image = ancestor::ClassOrInterfaceDeclaration[1]/@SimpleName)
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo implements Cloneable {
+    @Override
+    protected Object clone() { // Violation, Object must be Foo
+    }
+}
+
+public class Foo implements Cloneable {
+    @Override
+    public Foo clone() { //Ok
+    }
+}
+]]>
+        </example>
+    </rule>
+    <rule name="CompareObjectsWithEqualsRule"
+          language="java"
+          message="java.errorprone.CompareObjectsWithEqualsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.CompareObjectsWithEqualsRule">
+        <description>java.errorprone.CompareObjectsWithEqualsRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="typesThatCompareByReference" type="List[String]" delimiter=","
+                      description="List of canonical type names for which reference comparison is allowed.">
+                <value>java.lang.Enum,java.lang.Class</value>
+            </property>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//EqualityExpression
+    [count(
+        PrimaryExpression[pmd-java:typeIs('java.lang.Object')]
+        [not(some $t in $typesThatCompareByReference satisfies pmd-java:typeIs($t))]
+       ) = 2
+    ]
+    [not(PrimaryExpression[PrimaryPrefix/@ThisModifier = true()]
+                          [not(PrimarySuffix)]
+                          [ancestor::MethodDeclaration[@Name = 'equals']])
+    ]
+    (: Is not a field access with an all-caps identifier :)
+    [not(PrimaryExpression[not(PrimarySuffix) and PrimaryPrefix/Name[upper-case(@Image)=@Image]
+     or PrimaryExpression/PrimarySuffix[last()][upper-case(@Image)=@Image]])]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+class Foo {
+  boolean bar(String a, String b) {
+    return a == b;
+  }
+}
+
+]]>
+        </example>
+    </rule>
+
+    <rule name="DoNotThrowExceptionInFinallyRule"
+          language="java"
+          message="java.errorprone.DoNotThrowExceptionInFinallyRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.DoNotThrowExceptionInFinallyRule">
+        <description>java.errorprone.DoNotThrowExceptionInFinallyRule.rule.desc</description>
+        <priority>4</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>//FinallyStatement[descendant::ThrowStatement]</value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    public void bar() {
+        try {
+            // Here do some stuff
+        } catch( Exception e) {
+            // Handling the issue
+        } finally {
+            // is this really a good idea ?
+            throw new Exception();
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="EmptyCatchBlockRule"
+          language="java"
+          message="java.errorprone.EmptyCatchBlockRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.EmptyCatchBlockRule">
+        <description>java.errorprone.EmptyCatchBlockRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//CatchStatement
+ [not(Block/BlockStatement)]
+ [$allowCommentedBlocks != true() or Block/@containsComment = false()]
+ [FormalParameter/Type/ReferenceType
+   /ClassOrInterfaceType[@Image != 'InterruptedException' and @Image != 'CloneNotSupportedException']
+ ]
+ [FormalParameter/VariableDeclaratorId[not(matches(@Name, $allowExceptionNameRegex))]]
+]]>
+                </value>
+            </property>
+            <property name="allowCommentedBlocks" type="Boolean"
+                      description="Empty blocks containing comments will be skipped" value="false"/>
+            <property name="allowExceptionNameRegex" type="String"
+                      description="Empty blocks catching exceptions with names matching this regular expression will be skipped"
+                      value="^(ignored|expected)$"/>
+        </properties>
+        <example>
+            <![CDATA[
+public void doSomething() {
+    try {
+        FileInputStream fis = new FileInputStream("/tmp/bugger");
+    } catch (IOException ioe) {
+        // not good
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="ImplicitSwitchFallThroughRule"-->
+          <!--language="java"-->
+          <!--message="java.errorprone.ImplicitSwitchFallThroughRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.ImplicitSwitchFallThroughRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.errorprone.ImplicitSwitchFallThroughRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//SwitchStatement-->
+<!--[(count(.//BreakStatement)-->
+ <!--+ count(BlockStatement//Statement/ReturnStatement)-->
+ <!--+ count(BlockStatement//Statement/ContinueStatement)-->
+ <!--+ count(BlockStatement//Statement/ThrowStatement)-->
+ <!--+ count(BlockStatement//Statement/IfStatement[@Else= true() and Statement[2][ReturnStatement|ContinueStatement|ThrowStatement]]/Statement[1][ReturnStatement|ContinueStatement|ThrowStatement])-->
+ <!--+ count(SwitchLabel[ following-sibling::node()[1][self::SwitchLabel] ])-->
+ <!--+ count(SwitchLabel[count(following-sibling::node()) = 0])-->
+  <!--< count (SwitchLabel))]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public void bar(int status) {-->
+    <!--switch(status) {-->
+      <!--case CANCELLED:-->
+        <!--doCancelled();-->
+        <!--// break; hm, should this be commented out?-->
+      <!--case NEW:-->
+        <!--doNew();-->
+        <!--// is this really a fall-through?-->
+      <!--case REMOVED:-->
+        <!--doRemoved();-->
+        <!--// what happens if you add another case after this one?-->
+      <!--case OTHER: // empty case - this is interpreted as an intentional fall-through-->
+      <!--case ERROR:-->
+        <!--doErrorHandling();-->
+        <!--break;-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="InstantiationToGetClassRule"-->
+          <!--language="java"-->
+          <!--message="java.errorprone.InstantiationToGetClassRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.InstantiationToGetClassRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.errorprone.InstantiationToGetClassRule.rule.desc</description>-->
+        <!--<priority>4</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//PrimarySuffix-->
+ <!--[@Image='getClass']-->
+ <!--[parent::PrimaryExpression-->
+  <!--[PrimaryPrefix/AllocationExpression]-->
+  <!--[count(PrimarySuffix) = 2]-->
+ <!--]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--// replace this-->
+<!--Class c = new String().getClass();-->
+
+<!--// with this:-->
+<!--Class c = String.class;-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="MethodWithSameNameAsEnclosingClassRule"
+          language="java"
+          message="java.errorprone.MethodWithSameNameAsEnclosingClassRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.MethodWithSameNameAsEnclosingClassRule">
+        <description>java.errorprone.MethodWithSameNameAsEnclosingClassRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class MyClass {
+
+    public MyClass() {}         // this is OK because it is a constructor
+
+    public void MyClass() {}    // this is bad because it is a method
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="MissingSerialVersionUIDRule"
+          language="java"
+          message="java.errorprone.MissingSerialVersionUIDRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.MissingSerialVersionUIDRule">
+        <description>java.errorprone.MissingSerialVersionUIDRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//ClassOrInterfaceDeclaration
+    [@Interface = false()]
+    [count(ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration
+        /FieldDeclaration/VariableDeclarator/VariableDeclaratorId[@Name='serialVersionUID']) = 0]
+    [(ImplementsList | ExtendsList)/ClassOrInterfaceType[pmd-java:typeIs('java.io.Serializable')]]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo implements java.io.Serializable {
+    String name;
+    // Define serialization id to avoid serialization related bugs
+    // i.e., public static final long serialVersionUID = 4328743;
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="NonSerializableClassRule"
+          language="java"
+          message="java.errorprone.NonSerializableClassRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.NonSerializableClassRule">
+        <description>java.errorprone.NonSerializableClassRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+class Buzz implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private transient int someFoo;          // good, it's transient
+    private static int otherFoo;            // also OK, it's static
+    private java.io.FileInputStream stream; // bad - FileInputStream is not serializable
+
+    public void setStream(FileInputStream stream) {
+        this.stream = stream;
+    }
+
+    public int getSomeFoo() {
+          return this.someFoo;
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="OverrideBothEqualsAndHashcodeRule"
+          language="java"
+          message="java.errorprone.OverrideBothEqualsAndHashcodeRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.OverrideBothEqualsAndHashcodeRule">
+        <description>java.errorprone.OverrideBothEqualsAndHashcodeRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Bar {        // poor, missing a hashcode() method
+    public boolean equals(Object o) {
+      // do some comparison
+    }
+}
+
+public class Baz {        // poor, missing an equals() method
+    public int hashCode() {
+      // return some hash value
+    }
+}
+
+public class Foo {        // perfect, both methods provided
+    public boolean equals(Object other) {
+      // do some comparison
+    }
+    public int hashCode() {
+      // return some hash value
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="ProperLoggerRule"
+          language="java"
+          message="java.errorprone.ProperLoggerRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.ProperLoggerRule">
+        <description>java.errorprone.ProperLoggerRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//FieldDeclaration
+[Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs($loggerClass)]]
+[
+    (: check modifiers :)
+    (@Private = false() or @Final = false())
+    (: check logger name :)
+    or (@Static and VariableDeclarator/VariableDeclaratorId[@Name != $staticLoggerName])
+    or (@Static = false() and VariableDeclarator/VariableDeclaratorId[@Name != $loggerName])
+
+    (: check logger argument type matches class or enum name :)
+    or .//ArgumentList//ClassOrInterfaceType[@Image != ancestor::ClassOrInterfaceDeclaration/@SimpleName]
+    or .//ArgumentList//ClassOrInterfaceType[@Image != ancestor::EnumDeclaration/@SimpleName]
+]
+[not(
+     (: special case - final logger initialized inside constructor :)
+     not(VariableDeclarator/VariableInitializer)
+     and @Static = false()
+     and
+     ancestor::ClassOrInterfaceBody//ConstructorDeclaration//StatementExpression
+        [PrimaryExpression[PrimaryPrefix[@ThisModifier]]/PrimarySuffix[@Image=$loggerName]]
+        [AssignmentOperator[@Image = '=']]
+        [Expression/PrimaryExpression/PrimaryPrefix/Name[@Image = ancestor::ConstructorDeclaration//FormalParameter/VariableDeclaratorId/@Name]]
+        [not(.//AllocationExpression)]
+  )
+]
+]]>
+                </value>
+            </property>
+            <property name="staticLoggerName" type="String" description="Name of the static Logger variable"
+                      value="LOG"/>
+            <property name="loggerName" type="String" description="Name of the Logger instance variable" value="log"/>
+            <property name="loggerClass" type="String" description="Class name of the logger" value="Log"/>
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+
+    private static final Log LOG = LogFactory.getLog(Foo.class);    // proper way
+
+    protected Log LOG = LogFactory.getLog(Testclass.class);         // wrong approach
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="ReturnEmptyCollectionRatherThanNullRule"
+          language="java"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.ReturnEmptyCollectionRatherThanNullRule"
+          message="java.errorprone.ReturnEmptyCollectionRatherThanNullRule.rule.msg">
+        <description>java.errorprone.ReturnEmptyCollectionRatherThanNullRule.rule.desc</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix/Literal/NullLiteral
+[ancestor::MethodDeclaration[1]
+  [
+    (./ResultType/Type[pmd-java:typeIs('java.util.Collection')
+    or pmd-java:typeIs('java.util.Map')
+    or @ArrayType=true()])
+  ]
+]
+[not(./ancestor::LambdaExpression)]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Example {
+    // Not a good idea...
+    public int[] badBehavior() {
+        // ...
+        return null;
+    }
+
+    // Good behavior
+    public String[] bonnePratique() {
+        //...
+        return new String[0];
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="ReturnFromFinallyBlockRule"
+          language="java"
+          message="java.errorprone.ReturnFromFinallyBlockRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.ReturnFromFinallyBlockRule">
+        <description>java.errorprone.ReturnFromFinallyBlockRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>//FinallyStatement//ReturnStatement except
+                    //FinallyStatement//(MethodDeclaration|LambdaExpression)//ReturnStatement
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Bar {
+    public String foo() {
+        try {
+            throw new Exception( "My Exception" );
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            return "A. O. K."; // return not recommended here
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="UnconditionalIfStatementRule"-->
+          <!--language="java"-->
+          <!--message="java.errorprone.UnconditionalIfStatementRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.errorprone.UnconditionalIfStatementRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.errorprone.UnconditionalIfStatementRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//IfStatement/Expression-->
+ <!--[count(PrimaryExpression)=1]-->
+ <!--/PrimaryExpression/PrimaryPrefix/Literal/BooleanLiteral-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class Foo {-->
+    <!--public void close() {-->
+        <!--if (true) {        // fixed conditional, not recommended-->
+            <!--// ...-->
+        <!--}-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+</ruleset>

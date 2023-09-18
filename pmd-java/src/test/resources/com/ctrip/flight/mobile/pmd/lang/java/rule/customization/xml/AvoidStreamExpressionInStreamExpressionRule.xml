@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        public Predicate<Boolean> foo(String stringValue) {
+            return x -> Optional.ofNullable(stringValue).orElse("").equals("1");
+        }
+
+        public List<String> foo2() {
+            List<String> stringList = new ArrayList();
+            stringList.add("1");
+            return stringList.stream()
+                .filter(Objects::nonNull)
+                .filter(x -> Objects.equal(x, "1"))
+                .collect(Collectors.toList());
+
+        }
+    }]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        void bar() {
+             Map<Integer, PassengerRefType> passengerRefTypeMap1 =
+                    context.getBookSeatSimpleResponse().getPassengerRefList()
+                            .stream()
+                            .collect(Collectors.toMap(p1 -> p1.getRefId(), p2 -> p2, (p1, p2) -> p1));
+        }
+    }]]></code>
+    </test-code>
+
+    <test-code>
+        <description>contain stream expression</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        public void foo() {
+            List<InnerClass> innerList = getInnerList();
+            List<InnerClass> sortList = innerList.stream()
+                    .sorted(Comparator.comparing(x -> x.getExtensions().stream().anyMatch(j -> j == 1) ? 0 : x.getIndex()))
+                    .collect(Collectors.toList());
+        }
+
+        private List<InnerClass> getInnerList() {
+            List<InnerClass> innerList = new ArrayList<>();
+            InnerClass innerClass = new InnerClass();
+            innerClass.setIndex(1);
+            innerClass.setExtensions(Lists.newArrayList(1, 2, 3));
+            innerList.add(innerClass);
+            innerClass = new InnerClass();
+            innerClass.setIndex(2);
+            innerClass.setExtensions(Lists.newArrayList(4, 5, 6));
+            innerList.add(innerClass);
+            return innerList;
+        }
+
+        class InnerClass {
+            private Integer index;
+            private List<Integer> extensions;
+
+            public Integer getIndex() {
+                return index;
+            }
+
+            public void setIndex(Integer index) {
+                this.index = index;
+            }
+
+
+            public List<Integer> getExtensions() {
+                return extensions;
+            }
+
+            public void setExtensions(List<Integer> extensions) {
+                this.extensions = extensions;
+            }
+        }
+    }
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>stream expression contain other stream expression</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        public List<String> foo() {
+            List<String> stringList = new ArrayList();
+            stringList.add("1");
+            return stringList.stream()
+                .filter(Objects::nonNull)
+                .filter(x -> Optional.ofNullable(x).orElse("").equals("1"))
+                .collect(Collectors.toList());
+        }
+    }
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>stream expression contain other stream expression 2</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        public void foo(InnerClass innerClass2) {
+            InnerClass innerClass = getInnerClass();
+            List<InnerClass2> filterList = innerClass.getInnerClass2List()
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(x -> x.getStringList().stream().anyMatch(j -> Objects.equals(j, "1")))
+                .collect(Collectors.toList());
+        }
+
+        private InnerClass getInnerClass(){
+            InnerClass innerClass = new InnerClass();
+            innerClass.getStringList().add("1");
+            innerClass.getStringList().add("2");
+            innerClass.getStringList().add("3");
+            innerClass.getStringList().add(null);
+            innerClass.setInnerClass2List(new ArrayList<>());
+            InnerClass2 innerClass2 = new InnerClass2();
+            innerClass2.setName("1");
+            innerClass2.setStringList(new ArrayList<>());
+            innerClass2.getStringList().add("1");
+            innerClass.getInnerClass2List().add(innerClass2);
+            return innerClass;
+        }
+
+        public class InnerClass {
+            private List<String> stringList;
+            private List<InnerClass2> innerClass2List;
+
+            private Stream<String> streamList;
+
+            public Stream<String> getStreamList() {
+                return streamList;
+            }
+
+            public void setStreamList(Stream<String> streamList) {
+                this.streamList = streamList;
+            }
+
+            public List<InnerClass2> getInnerClass2List() {
+                return innerClass2List;
+            }
+
+            public void setInnerClass2List(List<InnerClass2> innerClass2List) {
+                this.innerClass2List = innerClass2List;
+            }
+
+            public List<String> getStringList() {
+                if (Objects.isNull(stringList)) {
+                    stringList = new ArrayList<>();
+                }
+                return stringList;
+            }
+
+            public void setStringList(List<String> stringList) {
+                this.stringList = stringList;
+            }
+        }
+
+        public class InnerClass2 {
+            private List<String> stringList;
+            private String name;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public List<String> getStringList() {
+                if (Objects.isNull(stringList)) {
+                    stringList = new ArrayList<>();
+                }
+                return stringList;
+            }
+
+            public void setStringList(List<String> stringList) {
+                this.stringList = stringList;
+            }
+        }
+    }
+    ]]></code>
+    </test-code>
+
+
+    <test-code>
+        <description>stream expression contain stream expression</description>
+        <rule-property name="streamExpressionLimitNum">1</rule-property>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+    public class Foo {
+        public void foo() {
+            InnerClass innerClass = getInnerClass();
+            List<InnerClass2> filterList = innerClass.getInnerClass2List()
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(x -> x.getStringList().stream().anyMatch(j -> Objects.equals(j, "1")))
+                .collect(Collectors.toList());
+        }
+
+        private InnerClass getInnerClass(){
+            InnerClass innerClass = new InnerClass();
+            innerClass.getStringList().add("1");
+            innerClass.getStringList().add("2");
+            innerClass.getStringList().add("3");
+            innerClass.getStringList().add(null);
+            innerClass.setInnerClass2List(new ArrayList<>());
+            InnerClass2 innerClass2 = new InnerClass2();
+            innerClass2.setName("1");
+            innerClass2.setStringList(new ArrayList<>());
+            innerClass2.getStringList().add("1");
+            innerClass.getInnerClass2List().add(innerClass2);
+            return innerClass;
+        }
+
+        public class InnerClass {
+            private List<String> stringList;
+            private List<InnerClass2> innerClass2List;
+
+            public List<InnerClass2> getInnerClass2List() {
+                return innerClass2List;
+            }
+
+            public void setInnerClass2List(List<InnerClass2> innerClass2List) {
+                this.innerClass2List = innerClass2List;
+            }
+
+            public List<String> getStringList() {
+                if (Objects.isNull(stringList)) {
+                    stringList = new ArrayList<>();
+                }
+                return stringList;
+            }
+
+            public void setStringList(List<String> stringList) {
+                this.stringList = stringList;
+            }
+        }
+
+        public class InnerClass2 {
+            private List<String> stringList;
+            private String name;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public List<String> getStringList() {
+                if (Objects.isNull(stringList)) {
+                    stringList = new ArrayList<>();
+                }
+                return stringList;
+            }
+
+            public void setStringList(List<String> stringList) {
+                this.stringList = stringList;
+            }
+        }
+    }
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>Ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+
+        private Mono<ResultWrapper<MultiFreightListSearchResponseType>> getIntlLoungeSingleBook(SearchXProductContext searchXProductContext,
+                                                                                                MultiFreightListSearchResponseType multiResponse) {
+            boolean queryXList = !searchXProductContext.isSingle()
+                && BOOK_NEED_XLIST.stream()
+                    .anyMatch(xProductType -> searchXProductContext.getProductTypes().contains(xProductType.getValue()))
+                    && searchXProductContext.isBookXProducts();
+
+            InnerClass innerClass = new InnerClass();
+            innerClass.setExtensions(Lists.newArrayList("1"));
+            // special handler .getExtensions() and queryXList isn't stream expression
+            boolean result = stringList.stream().anyMatch(x-> innerClass.getExtensions().contains(x) || queryXList);
+        }
+
+
+        // getExtensions is stream expression
+        private Mono<SearchXProductResult> getExtensions(SearchXProductContext searchXProductContext) {
+
+        }
+
+        class InnerClass {
+            private List<String> extensions;
+
+            public List<String> getExtensions() {
+                return extensions;
+            }
+
+            public void setExtensions(List<String> extensions) {
+                this.extensions = extensions;
+            }
+        }
+}
+        ]]></code>
+    </test-code>
+
+</test-data>

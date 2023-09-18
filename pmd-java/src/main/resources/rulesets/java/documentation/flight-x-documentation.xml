@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<ruleset name="documentation"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Rules that are related to code documentation.
+    </description>
+
+    <!--<rule name="CommentContentRule"-->
+          <!--language="java"-->
+          <!--since="5.0"-->
+          <!--message="java.documentation.CommentContentRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.documentation.CommentContentRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.documentation.CommentContentRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="caseSensitive" value="false"/>-->
+            <!--<property name="disallowedTerms" value="idiot|jerk"/>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--//OMG, this is horrible, Bob is an idiot !!!-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="CommentRequiredRule"
+          language="java"
+          message="java.documentation.CommentRequiredRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.documentation.CommentRequiredRule">
+        <description>java.documentation.CommentRequiredRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="methodWithOverrideCommentRequirement" value="Ignored"/>
+            <property name="accessorCommentRequirement" value="Ignored"/>
+            <property name="classCommentRequirement" value="Required"/>
+            <property name="fieldCommentRequirement" value="Required"/>
+            <property name="publicMethodCommentRequirement" value="Required"/>
+            <property name="protectedMethodCommentRequirement" value="Required"/>
+            <property name="enumCommentRequirement" value="Required"/>
+            <property name="serialVersionUIDCommentRequired" value="Ignored"/>
+            <property name="serialPersistentFieldsCommentRequired" value="Ignored"/>
+        </properties>
+        <example>
+            <![CDATA[
+/**
+*
+*
+* @author Jon Doe
+*/
+]]>
+        </example>
+    </rule>
+</ruleset>

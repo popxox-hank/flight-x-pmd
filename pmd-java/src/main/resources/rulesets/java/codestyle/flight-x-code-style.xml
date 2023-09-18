@@ -1,0 +1,683 @@
+<?xml version="1.0"?>
+
+<ruleset name="codestyle"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Rules which enforce a specific coding style.
+    </description>
+
+    <!--<rule name="AvoidProtectedFieldInFinalClassRule"-->
+          <!--language="java"-->
+          <!--message="java.code.style.AvoidProtectedFieldInFinalClassRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.AvoidProtectedFieldInFinalClassRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.code.style.AvoidProtectedFieldInFinalClassRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//ClassOrInterfaceDeclaration[@Final= true()]-->
+<!--/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration-->
+<!--/FieldDeclaration[@Protected= true()]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public final class Bar {-->
+  <!--private int x;-->
+  <!--protected int y;  // bar cannot be subclassed, so is y really private or package visible?-->
+  <!--Bar() {}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="AvoidProtectedMethodInFinalClassNotExtendingRule"-->
+          <!--language="java"-->
+          <!--message="java.code.style.AvoidProtectedMethodInFinalClassNotExtendingRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.AvoidProtectedMethodInFinalClassNotExtendingRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.code.style.AvoidProtectedMethodInFinalClassNotExtendingRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//ClassOrInterfaceDeclaration[@Final= true() and not(ExtendsList)]-->
+<!--/ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration-->
+<!--/MethodDeclaration[@Protected=true() and @Name != 'finalize']-->
+ <!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public final class Foo {-->
+  <!--private int bar() {}-->
+  <!--protected int baz() {} // Foo cannot be subclassed, and doesn't extend anything, so is baz() really private or package visible?-->
+<!--}-->
+ <!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="BooleanGetMethodNameRule"
+          language="java"
+          message="java.code.style.BooleanGetMethodNameRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.BooleanGetMethodNameRule">
+        <description>java.code.style.BooleanGetMethodNameRule.rule.desc</description>
+        <priority>4</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//MethodDeclaration
+    [starts-with(@Name, 'get')]
+    [@Arity = 0 or $checkParameterizedMethods = true()]
+    [
+        ResultType/Type/PrimitiveType[@Image = 'boolean']
+        and not(../Annotation//Name[@Image = 'Override'])
+    ]
+]]>
+                </value>
+            </property>
+            <property name="checkParameterizedMethods" type="Boolean" description="Check parameterized methods"
+                      value="true"/>
+        </properties>
+        <example>
+            <![CDATA[
+public boolean getFoo();            // bad
+public boolean isFoo();             // ok
+public boolean getFoo(boolean bar); // ok, unless checkParameterizedMethods=true
+]]>
+        </example>
+    </rule>
+
+    <rule name="ClassNamingConventionsRule"
+          language="java"
+          message="java.code.style.ClassNamingConventionsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.ClassNamingConventionsRule">
+        <description>java.code.style.ClassNamingConventionsRule.rule.desc</description>
+        <priority>1</priority>
+        <properties>
+            <property name="classPattern" value="^I|X?([A-Z][a-zX0-9]+)+(([A-Z])|(DO|DTO|VO|DAO|BO|DAOImpl|YunOS|AO|PO))?$"></property>
+            <property name="abstractClassPattern" value="^(Abstract|Base)+[A-Z][a-zA-Z0-9]*"></property>
+            <property name="testClassPattern"
+                      value="^Test.*$|^[A-Z][a-zA-Z0-9]*Test(s|Case)?$"></property>
+        </properties>
+        <example>
+            <![CDATA[
+// This is Pascal case, the recommended naming convention in Java
+// Note that the default values of this rule don't allow underscores
+// or accented characters in type names
+public class FooBar {}
+
+// You may want abstract classes to be named 'AbstractXXX',
+// in which case you can customize the regex for abstract
+// classes to '^(Abstract|Base)+[A-Z][a-zA-Z0-9]*'
+public abstract class Thing {}
+
+// This class doesn't respect the convention, and will be flagged
+public class Éléphant {}
+]]>
+        </example>
+    </rule>
+
+    <rule name="ControlStatementBracesRule"
+          language="java"
+          since="6.2.0"
+          message="java.code.style.ControlStatementBracesRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.ControlStatementBracesRule">
+        <description>java.code.style.ControlStatementBracesRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="checkIfElseStmt" type="Boolean" value="true" description="Require that 'if ... else' statements use braces" />
+            <property name="checkSingleIfStmt" type="Boolean" value="true" description="Require that 'if' statements with a single branch use braces" />
+            <property name="checkWhileStmt" type="Boolean" value="true" description="Require that 'while' loops use braces" />
+            <property name="checkForStmt" type="Boolean" value="true" description="Require that 'for' loops should use braces" />
+            <property name="checkDoWhileStmt" type="Boolean" value="true" description="Require that 'do ... while' loops use braces" />
+            <property name="checkCaseStmt" type="Boolean" value="false" description="Require that cases of a switch have braces"/>
+            <property name="allowEmptyLoop" type="Boolean" value="false" description="Allow loops with an empty statement, e.g. 'while(true);'" />
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+                //WhileStatement[$checkWhileStmt and not(Statement/Block) and not($allowEmptyLoop and Statement/EmptyStatement)]
+                |
+                //ForStatement[$checkForStmt and not(Statement/Block) and not($allowEmptyLoop and Statement/EmptyStatement)]
+                |
+                //DoStatement[$checkDoWhileStmt and not(Statement/Block) and not($allowEmptyLoop and Statement/EmptyStatement)]
+                |
+                (: The violation is reported on the sub statement -- not the if statement :)
+                //Statement[$checkIfElseStmt and parent::IfStatement and not(child::Block or child::IfStatement)
+                            (: Whitelists single if statements :)
+                            and ($checkSingleIfStmt
+                                 (: Inside this not(...) is the definition of a "single if statement" :)
+                                 or not(count(../Statement) = 1 (: No else stmt :)
+                                        (: Not the last branch of an 'if ... else if' chain :)
+                                        and not(parent::IfStatement[parent::Statement[parent::IfStatement]])))]
+                |
+                (: Reports case labels if one of their subordinate statements is not braced :)
+                //SwitchLabel[$checkCaseStmt]
+                             [count(following-sibling::BlockStatement except following-sibling::SwitchLabel[1]/following-sibling::BlockStatement) > 1
+                              or (some $stmt (: in only the block statements until the next label :)
+                                  in following-sibling::BlockStatement except following-sibling::SwitchLabel[1]/following-sibling::BlockStatement
+                                  satisfies not($stmt/Statement/Block))]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+while (true)    // not recommended
+  x++;
+
+while (true) {  // preferred approach
+  x++;
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="EmptyControlStatementRule"-->
+          <!--language="java"-->
+          <!--message="java.code.style.EmptyControlStatementRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.EmptyControlStatementRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.code.style.EmptyControlStatementRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--class Foo {-->
+    <!--{-->
+        <!--if (true); // empty if statement-->
+        <!--if (true) { // empty as well-->
+        <!--}-->
+    <!--}-->
+
+    <!--{} // empty initializer-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="EmptyMethodInAbstractClassShouldBeAbstractRule"-->
+          <!--language="java"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.EmptyMethodInAbstractClassShouldBeAbstractRule"-->
+          <!--message="java.code.style.EmptyMethodInAbstractClassShouldBeAbstractRule.rule.msg"-->
+          <!--deprecated="true">-->
+        <!--<description>java.code.style.EmptyMethodInAbstractClassShouldBeAbstractRule.rule.desc</description>-->
+        <!--<priority>1</priority>-->
+        <!--<properties>-->
+            <!--<property name="version" value="2.0"/>-->
+            <!--<property name="xpath">-->
+                <!--<value>-->
+                    <!--<![CDATA[-->
+<!--//ClassOrInterfaceDeclaration[@Abstract = true()]-->
+    <!--/ClassOrInterfaceBody-->
+    <!--/ClassOrInterfaceBodyDeclaration-->
+    <!--/MethodDeclaration[@Abstract = false() and @Native = false()]-->
+    <!--[-->
+        <!--( boolean(./Block[count(./BlockStatement) =  1]/BlockStatement/Statement/ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix/Literal/NullLiteral) = true() )-->
+        <!--or-->
+        <!--( boolean(./Block[count(./BlockStatement) =  1]/BlockStatement/Statement/ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image = '0']) = true() )-->
+        <!--or-->
+        <!--( boolean(./Block[count(./BlockStatement) =  1]/BlockStatement/Statement/ReturnStatement/Expression/PrimaryExpression/PrimaryPrefix/Literal[string-length(@Image) = 2]) = true() )-->
+        <!--or-->
+        <!--(./Block[count(./BlockStatement) =  1]/BlockStatement/Statement/EmptyStatement)-->
+        <!--or-->
+        <!--( not (./Block/*) )-->
+    <!--]-->
+<!--]]>-->
+                <!--</value>-->
+            <!--</property>-->
+        <!--</properties>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public abstract class ShouldBeAbstract {-->
+    <!--public Object couldBeAbstract() {-->
+        <!--// Should be abstract method ?-->
+        <!--return null;-->
+    <!--}-->
+
+    <!--public void couldBeAbstract() {-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="FieldNamingConventionsRule"
+          language="java"
+          message="java.code.style.FieldNamingConventionsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.FieldNamingConventionsRule">
+        <description>java.code.style.FieldNamingConventionsRule.rule.desc</description>
+        <priority>1</priority>
+        <properties>
+            <property name="publicConstantPattern" value="[A-Z][A-Z_0-9]*" />
+            <property name="constantPattern" value="[A-Z][A-Z_0-9]*" />
+            <property name="enumConstantPattern" value="[A-Z][A-Z_0-9]*" />
+            <property name="finalFieldPattern" value="[A-Z][A-Z_0-9]*" />
+            <property name="staticFieldPattern" value="[A-Z][A-Z_0-9]*" />
+            <property name="defaultFieldPattern" value="[a-z][a-zA-Z_0-9]*" />
+            <property name="exclusions" value="serialVersionUID|serialPersistentFields" />
+        </properties>
+        <example>
+            <![CDATA[
+            class Foo {
+                int myField = 1; // This is in camel case, so it's ok
+                int my_Field = 1; // This contains an underscore, it's not ok by default
+                                  // but you may allow it, or even require the "my_" prefix
+
+                final int FinalField = 1; // you may configure a different convention for final fields,
+                                          // e.g. here PascalCase: [A-Z][a-zA-Z0-9]*
+
+                interface Interface {
+                    double PI = 3.14; // interface "fields" use the constantPattern property
+                }
+
+                enum AnEnum {
+                    ORG, NET, COM; // These use a separate property but are set to ALL_UPPER by default
+                }
+            }
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="FormalParameterNamingConventionsRule"
+          language="java"
+          message="java.code.style.FormalParameterNamingConventionsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.FormalParameterNamingConventionsRule">
+        <description>java.code.style.FormalParameterNamingConventionsRule.rule.desc</description>
+        <priority>1</priority>
+        <properties>
+            <property name="methodParameterPattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="finalMethodParameterPattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="lambdaParameterPattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="explicitLambdaParameterPattern" value="[a-z][a-zA-Z0-9]*" />
+        </properties>
+        <example>
+            <![CDATA[
+            class Foo {
+
+                abstract void bar(int myInt); // This is Camel case, so it's ok
+
+                void bar(int my_i) { // this will be reported
+
+                }
+
+                void lambdas() {
+
+                    // lambdas parameters can be configured separately
+                    Consumer<String> lambda1 = s_str -> { };
+
+                    // lambda parameters with an explicit type can be configured separately
+                    Consumer<String> lambda1 = (String str) -> { };
+
+                }
+
+            }
+            ]]>
+        </example>
+    </rule>
+
+
+
+    <rule name="GenericsNamingRule"
+          language="java"
+          message="java.code.style.GenericsNamingRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.GenericsNamingRule">
+        <description>java.code.style.GenericsNamingRule.rule.desc</description>
+        <priority>4</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//TypeDeclaration/ClassOrInterfaceDeclaration/TypeParameters/TypeParameter[
+  upper-case(@Image) != @Image
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public interface GenericDao<E extends BaseModel, K extends Serializable> extends BaseDao {
+    // This is ok...
+}
+
+public interface GenericDao<E extends BaseModel, K extends Serializable> {
+    // Also this
+}
+
+public interface GenericDao<e extends BaseModel, K extends Serializable> {
+    // 'e' should be an 'E'
+}
+
+public interface GenericDao<EOF extends BaseModel, Key extends Serializable> {
+   // 'EOF' is ok. 'Key' is not ok
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="LinguisticNamingRule"
+          language="java"
+          message="java.code.style.LinguisticNamingRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.LinguisticNamingRule"
+          typeResolution="true">
+        <description>java.code.style.LinguisticNamingRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="ignoredAnnotations" value="java.lang.Override" />
+            <property name="checkBooleanMethod" value="true" />
+            <property name="checkGetters" value="true" />
+            <property name="checkSetters" value="true" />
+            <property name="checkPrefixedTransformMethods" value="true" />
+            <property name="checkTransformMethods" value="false" />
+            <property name="booleanMethodPrefixes" value="is|has|can|have|will|should" />
+            <property name="transformMethodNames" value="to|as" />
+            <property name="checkFields" value="true" />
+            <property name="checkVariables" value="true" />
+            <property name="booleanFieldPrefixes" value="is|has|can|have|will|should" />
+        </properties>
+        <example>
+            <![CDATA[
+public class LinguisticNaming {
+    int isValid;    // the field name indicates a boolean, but it is an int.
+    boolean isTrue; // correct type of the field
+
+    void myMethod() {
+        int hasMoneyLocal;      // the local variable name indicates a boolean, but it is an int.
+        boolean hasSalaryLocal; // correct naming and type
+    }
+
+    // the name of the method indicates, it is a boolean, but the method returns an int.
+    int isValid() {
+        return 1;
+    }
+    // correct naming and return type
+    boolean isSmall() {
+        return true;
+    }
+
+    // the name indicates, this is a setter, but it returns something
+    int setName() {
+        return 1;
+    }
+
+    // the name indicates, this is a getter, but it doesn't return anything
+    void getName() {
+        // nothing to return?
+    }
+
+    // the name indicates, it transforms an object and should return the result
+    void toDataType() {
+        // nothing to return?
+    }
+    // the name indicates, it transforms an object and should return the result
+    void grapeToWine() {
+        // nothing to return?
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="LocalVariableCouldBeFinalRule"-->
+          <!--language="java"-->
+          <!--message="java.code.style.LocalVariableCouldBeFinalRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.LocalVariableCouldBeFinalRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.code.style.LocalVariableCouldBeFinalRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class Bar {-->
+    <!--public void foo () {-->
+    <!--String txtA = "a";          // if txtA will not be assigned again it is better to do this:-->
+    <!--final String txtB = "b";-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="LocalVariableNamingConventionsRule"
+          language="java"
+          message="java.code.style.LinguisticNamingRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.LocalVariableNamingConventionsRule">
+        <description>java.code.style.LinguisticNamingRule.rule.desc</description>
+        <priority>1</priority>
+        <properties>
+            <property name="localVarPattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="finalVarPattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="catchParameterPattern" value="[a-z][a-zA-Z0-9]*" />
+        </properties>
+        <example>
+            <![CDATA[
+            class Foo {
+                void bar() {
+                    int localVariable = 1; // This is in camel case, so it's ok
+                    int local_variable = 1; // This will be reported unless you change the regex
+
+                    final int i_var = 1; // final local variables can be configured separately
+
+                    try {
+                        foo();
+                    } catch (IllegalArgumentException e_illegal) {
+                        // exception block parameters can be configured separately
+                    }
+
+                }
+            }
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="LongVariableRule"
+          language="java"
+          message="java.code.style.LongVariableRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.LongVariableRule">
+        <description>java.code.style.LongVariableRule.rule.desc</description>
+        <priority>4</priority>
+        <properties>
+            <property name="minimum" type="Integer" description="The variable length reporting threshold" min="1"
+                      max="100" value="30"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//VariableDeclaratorId[string-length(@Name) > $minimum]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+public class Something {
+    int reallyLongIntName = -3;             // OK - Field
+    public static void main( String argumentsList[] ) { // OK - Formal
+        int otherReallyLongName = -5;       // OK - Local
+        for (int interestingIntIndex = 0;   // OK - For
+             interestingIntIndex < 10;
+             interestingIntIndex ++ ) {
+        }
+        int thisVariableFromAnotherParameter = 0; // VIOLATION - Local above 30 length
+    }
+]]>
+        </example>
+    </rule>
+
+    <rule name="MethodNamingConventionsRule"
+          language="java"
+          message="java.code.style.MethodNamingConventionsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.MethodNamingConventionsRule">
+        <description>java.code.style.MethodNamingConventionsRule.rule.desc</description>
+        <priority>1</priority>
+        <properties>
+            <property name="methodPattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="staticPattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="nativePattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="junit3TestPattern" value="test[A-Z0-9][a-zA-Z0-9]*" />
+            <property name="junit4TestPattern" value="[a-z][a-zA-Z0-9]*" />
+            <property name="junit5TestPattern" value="[a-z][a-zA-Z0-9]*" />
+        </properties>
+        <example>
+            <![CDATA[
+public class Foo {
+    public void fooStuff() {
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="PackageCaseRule"
+          language="java"
+          message="java.code.style.PackageCaseRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.PackageCaseRule">
+        <description>java.code.style.PackageCaseRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>//PackageDeclaration/Name[lower-case(@Image)!=@Image]</value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+package com.MyCompany;  // should be lowercase name
+
+public class SomeClass {
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="PrematureDeclarationRule"
+          language="java"
+          message="java.code.style.PrematureDeclarationRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.PrematureDeclarationRule">
+        <description>java.code.style.PrematureDeclarationRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public int getLength(String[] strings) {
+
+    int length = 0; // declared prematurely
+
+    if (strings == null || strings.length == 0) return 0;
+
+    for (String str : strings) {
+        length += str.length();
+    }
+
+    return length;
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="UnnecessaryCastRule"-->
+          <!--language="java"-->
+          <!--minimumLanguageVersion="1.5"-->
+          <!--message="java.code.style.UnnecessaryCastRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.UnnecessaryCastRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.code.style.UnnecessaryCastRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--public class UnnecessaryCastSample {-->
+    <!--public void method() {-->
+        <!--List<String> stringList = Arrays.asList("a", "b");-->
+        <!--String element = (String) stringList.get(0); // this cast is unnecessary-->
+        <!--String element2 = stringList.get(0);-->
+    <!--}-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="UnnecessaryLocalBeforeReturnRule"
+          language="java"
+          message="java.code.style.UnnecessaryLocalBeforeReturnRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.UnnecessaryLocalBeforeReturnRule">
+        <description>java.code.style.UnnecessaryLocalBeforeReturnRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+   public int foo() {
+     int x = doSomething();
+     return x;  // instead, just 'return doSomething();'
+   }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UnnecessaryConstructorRule"
+          language="java"
+          message="java.code.style.UnnecessaryConstructorRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.UnnecessaryConstructorRule"
+          deprecated="true">
+        <description>java.code.style.UnnecessaryConstructorRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+  public Foo() {}
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UnnecessaryModifierRule"
+          language="java"
+          message="java.code.style.UnnecessaryModifierRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.codestyle.UnnecessaryModifierRule"
+          deprecated="true">
+        <description>java.code.style.UnnecessaryModifierRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public @interface Annotation {
+    public abstract void bar();     // both abstract and public are ignored by the compiler
+    public static final int X = 0;  // public, static, and final all ignored
+    public static class Bar {}      // public, static ignored
+    public static interface Baz {}  // ditto
+}
+public interface Foo {
+    public abstract void bar();     // both abstract and public are ignored by the compiler
+    public static final int X = 0;  // public, static, and final all ignored
+    public static class Bar {}      // public, static ignored
+    public static interface Baz {}  // ditto
+}
+public class Bar {
+    public static interface Baz {}  // static ignored
+    public static enum FoorBar {    // static ignored
+        FOO;
+    }
+}
+public class FooClass {
+    static record BarRecord() {}     // static ignored
+}
+public interface FooInterface {
+    static record BarRecord() {}     // static ignored
+}
+]]>
+        </example>
+    </rule>
+
+
+
+</ruleset>

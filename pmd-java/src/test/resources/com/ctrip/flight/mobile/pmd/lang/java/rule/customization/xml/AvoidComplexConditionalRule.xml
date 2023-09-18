@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+    <test-code>
+        <description>failure</description>
+        <expected-problems>13</expected-problems>
+        <code><![CDATA[
+public class Foo {
+  public Foo(List<String> stringList, String input) {
+    boolean isTest = Objects.nonNull(input) || input.equals("test") && StringList.contains("conditionalTooLongNeedChangeLine");
+    if((Objects.nonNull(input) && input.equals("test"))
+            || StringList.contains("conditionalTooLongNeedChangeLine")) {
+        // doSomething();
+    }
+    boolean isTest3 = StringList.stream().anyMatch(x-> !Objects.equals(x, "3")
+            && (Objects.equals(x, "1") || Objects.equals(x, "2")));
+
+    boolean isTest4 = !isOk() || input.equals("test");
+    boolean isTest5 = !isOk() && input.equals("test");
+    boolean isTest6 = isOk()^isOk2() && input.equals("test");
+
+    boolean isTest7 = !isOk()^isOk2();
+
+    boolean isTest8 = (a | b) == c && isOk2();
+
+    boolean isTest9 = (a & b) == c && isOk2();
+
+    boolean isTest10 = (a >> 2) == c && isOk2();
+
+    boolean isTest11 = (a << 2) == c && isOk2();
+
+    boolean isTest12 = (a >>> 2) == c && isOk2();
+
+    boolean isTest13 = ~a == b && isOk2();
+
+  }
+}
+        ]]></code>
+    </test-code>
+
+
+    <test-code>
+        <description>success</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+  public Foo(List<String> stringList, String input) {
+    boolean isTest = Objects.nonNull(input)
+            || input.equals("test")
+            || StringList.contains("conditionalTooLongNeedChangeLine");
+
+    if(Objects.nonNull(input)
+        && input.equals("test")
+        && StringList.contains("conditionalTooLongNeedChangeLine")) {
+        // doSomething();
+    }
+
+    boolean isTest3 = StringList
+        .stream()
+        .anyMatch(x-> Objects.equals(x, "3")
+            && Objects.equals(x, "1")
+            && Objects.equals(x, "2"));
+
+  }
+}
+        ]]></code>
+    </test-code>
+</test-data>

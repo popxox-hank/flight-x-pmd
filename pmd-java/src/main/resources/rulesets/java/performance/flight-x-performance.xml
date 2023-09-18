@@ -1,0 +1,550 @@
+<?xml version="1.0"?>
+
+<ruleset name="performance"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Rules that flag suboptimal code.
+    </description>
+    <rule name="AddEmptyStringRule"
+          language="java"
+          message="java.performance.AddEmptyStringRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.AddEmptyStringRule">
+        <description>java.performance.AddEmptyStringRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//AdditiveExpression/PrimaryExpression/PrimaryPrefix/Literal[@Image='""' and not(ancestor::Annotation)]
+|
+//AdditiveExpression/PrimaryExpression/PrimaryPrefix/Name
+  [@Image = (//FieldDeclaration[@Final = true()]|ancestor::MethodDeclaration//LocalVariableDeclaration[@Final = true()])
+                /VariableDeclarator[@Initializer = true()]
+                    [VariableInitializer/Expression/PrimaryExpression/PrimaryPrefix/Literal[@Image='""']]
+                    /VariableDeclaratorId/@Name]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+String s = "" + 123;                // inefficient
+String t = Integer.toString(456);   // preferred approach
+]]>
+        </example>
+    </rule>
+
+    <rule name="AppendCharacterWithCharRule"
+          language="java"
+          message="java.performance.AppendCharacterWithCharRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.AppendCharacterWithCharRule">
+        <description>java.performance.AppendCharacterWithCharRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+StringBuffer sb = new StringBuffer();
+sb.append("a");     // avoid this
+
+StringBuffer sb = new StringBuffer();
+sb.append('a');     // use this instead
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidCalendarDateCreationRule"
+          language="java"
+          message="java.performance.AvoidCalendarDateCreationRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.AvoidCalendarDateCreationRule">
+        <description>java.performance.AvoidCalendarDateCreationRule.rule.desc</description>
+        <priority>5</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value><![CDATA[
+//PrimaryPrefix[Name[ends-with(@Image, 'Calendar.getInstance')]] [count(../PrimarySuffix) > 2 and ../PrimarySuffix[last()-1][@Image = 'getTime' or @Image='getTimeInMillis']]
+|
+//MethodDeclaration[not(MethodDeclarator/FormalParameters//ClassOrInterfaceType[pmd-java:typeIs('java.util.Calendar')])]
+  /Block/BlockStatement//PrimaryExpression
+  /PrimaryPrefix/Name
+    [pmd-java:typeIs('java.util.Calendar')]
+    [every $var in @Image satisfies (
+       (ends-with($var, '.getTime') or ends-with($var, '.getTimeInMillis'))
+       and
+       (: ignore if .set* or .add* or .clear is called on the variable :)
+       not(ancestor::Block/BlockStatement//Name[
+          starts-with(@Image, concat((tokenize($var, '\.'), $var)[1], '.set'))
+          or
+          starts-with(@Image, concat((tokenize($var, '\.'), $var)[1], '.add'))
+          or
+          starts-with(@Image, concat((tokenize($var, '\.'), $var)[1], '.clear'))
+       ])
+    )]
+|
+//ClassOrInterfaceType[pmd-java:typeIs('org.joda.time.DateTime') or pmd-java:typeIs('org.joda.time.LocalDateTime')][../Arguments/ArgumentList/Expression/PrimaryExpression/PrimaryPrefix/Name[ends-with(@Image, 'Calendar.getInstance')]]
+                ]]></value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import java.time.LocalDateTime;
+import java.util.Calendar;
+import java.util.Date;
+
+public class DateStuff {
+    private Date bad1() {
+        return Calendar.getInstance().getTime(); // now
+    }
+    private Date good2() {
+        return new Date(); // now
+    }
+    private LocalDateTime good3() {
+        return LocalDateTime.now();
+    }
+    private long bad2() {
+        return Calendar.getInstance().getTimeInMillis();
+    }
+    private long good4() {
+        return System.currentTimeMillis();
+    }
+
+    // suggest use apache's FastDateFormat and DateUtils
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidFileStreamRule"
+          message="java.performance.AvoidFileStreamRule.rule.msg"
+          language="java"
+          minimumLanguageVersion="1.7"
+          maximumLanguageVersion="9"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.AvoidFileStreamRule">
+        <description>java.performance.AvoidFileStreamRule.rule.desc</description>
+        <priority>1</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//PrimaryPrefix/AllocationExpression/ClassOrInterfaceType[
+       pmd-java:typeIs('java.io.FileInputStream')
+    or pmd-java:typeIs('java.io.FileOutputStream')
+    or pmd-java:typeIs('java.io.FileReader')
+    or pmd-java:typeIs('java.io.FileWriter')
+  ]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+    // these instantiations cause garbage collection pauses, even if properly closed
+
+    FileInputStream fis = new FileInputStream(fileName);
+    FileOutputStream fos = new FileOutputStream(fileName);
+    FileReader fr = new FileReader(fileName);
+    FileWriter fw = new FileWriter(fileName);
+
+    // the following instantiations help prevent Garbage Collection pauses, no finalization
+
+    try(InputStream is = Files.newInputStream(Paths.get(fileName))) {
+    }
+    try(OutputStream os = Files.newOutputStream(Paths.get(fileName))) {
+    }
+    try(BufferedReader br = Files.newBufferedReader(Paths.get(fileName), StandardCharsets.UTF_8)) {
+    }
+    try(BufferedWriter wr = Files.newBufferedWriter(Paths.get(fileName), StandardCharsets.UTF_8)) {
+    }
+]]>
+        </example>
+    </rule>
+
+    <rule name="AvoidInstantiatingObjectsInLoopsRule"
+          language="java"
+          message="java.performance.AvoidInstantiatingObjectsInLoopsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.AvoidInstantiatingObjectsInLoopsRule">
+        <description>java.performance.AvoidInstantiatingObjectsInLoopsRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Something {
+    public static void main( String as[] ) {
+        for (int i = 0; i < 10; i++) {
+            Foo f = new Foo(); // Avoid this whenever you can it's really expensive
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="BigIntegerInstantiationRule"
+          language="java"
+          message="java.performance.BigIntegerInstantiationRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.BigIntegerInstantiationRule">
+        <description>java.performance.BigIntegerInstantiationRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+BigInteger bi = new BigInteger(1);       // reference BigInteger.ONE instead
+BigInteger bi2 = new BigInteger("0");    // reference BigInteger.ZERO instead
+BigInteger bi3 = new BigInteger(0.0);    // reference BigInteger.ZERO instead
+BigInteger bi4;
+bi4 = new BigInteger(0);                 // reference BigInteger.ZERO instead
+]]>
+        </example>
+    </rule>
+
+    <rule name="ConsecutiveAppendsShouldReuseRule"
+          language="java"
+          message="java.performance.ConsecutiveAppendsShouldReuseRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.ConsecutiveAppendsShouldReuseRule">
+        <description>java.performance.ConsecutiveAppendsShouldReuseRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+String foo = " ";
+
+StringBuffer buf = new StringBuffer();
+buf.append("Hello"); // poor
+buf.append(foo);
+buf.append("World");
+
+StringBuffer buf = new StringBuffer();
+buf.append("Hello").append(foo).append("World"); // good
+]]>
+        </example>
+    </rule>
+
+    <rule name="ConsecutiveLiteralAppendsRule"
+          language="java"
+          message="java.performance.ConsecutiveLiteralAppendsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.ConsecutiveLiteralAppendsRule">
+        <description>java.performance.ConsecutiveLiteralAppendsRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="threshold" value="1"/>
+        </properties>
+        <example>
+            <![CDATA[
+StringBuilder buf = new StringBuilder();
+buf.append("Hello").append(" ").append("World");    // poor
+buf.append("Hello World");                          // good
+
+buf.append('h').append('e').append('l').append('l').append('o'); // poor
+buf.append("hello");                                             // good
+
+buf.append(1).append('m');  // poor
+buf.append("1m");           // good
+]]>
+        </example>
+    </rule>
+
+    <rule name="InefficientStringBufferingRule"
+          language="java"
+          message="java.performance.InefficientStringBufferingRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.InefficientStringBufferingRule">
+        <description>java.performance.InefficientStringBufferingRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+// Avoid this, two buffers are actually being created here
+StringBuffer sb = new StringBuffer("tmp = "+System.getProperty("java.io.tmpdir"));
+
+// do this instead
+StringBuffer sb = new StringBuffer("tmp = ");
+sb.append(System.getProperty("java.io.tmpdir"));
+]]>
+        </example>
+    </rule>
+
+    <rule name="InsufficientStringBufferDeclarationRule"
+          language="java"
+          message="java.performance.InsufficientStringBufferDeclarationRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.InsufficientStringBufferDeclarationRule">
+        <description>java.performance.InsufficientStringBufferDeclarationRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+StringBuilder bad = new StringBuilder();
+bad.append("This is a long string that will exceed the default 16 characters");
+
+StringBuilder good = new StringBuilder(41);
+good.append("This is a long string, which is pre-sized");
+]]>
+        </example>
+    </rule>
+
+    <rule name="OptimizableToArrayCallRule"
+          language="java"
+          minimumLanguageVersion="1.6"
+          message="java.performance.OptimizableToArrayCallRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.OptimizableToArrayCallRule">
+        <description>java.performance.OptimizableToArrayCallRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//PrimaryExpression
+[PrimaryPrefix/Name[ends-with(@Image, 'toArray')]]
+[
+PrimarySuffix/Arguments/ArgumentList/Expression
+ /PrimaryExpression/PrimaryPrefix/AllocationExpression
+ /ArrayDimsAndInits/Expression/PrimaryExpression/PrimaryPrefix[not(Literal[@Image='0'])]
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+List<Foo> foos = getFoos();
+
+// much better; this one allows the jvm to allocate an array of the correct size and effectively skip
+// the zeroing, since each array element will be overridden anyways
+Foo[] fooArray = foos.toArray(new Foo[0]);
+
+// inefficient, the array needs to be zeroed out by the jvm before it is handed over to the toArray method
+Foo[] fooArray = foos.toArray(new Foo[foos.size()]);
+]]>
+        </example>
+    </rule>
+
+    <rule name="RedundantFieldInitializerRule"
+          language="java"
+          message="java.performance.RedundantFieldInitializerRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.RedundantFieldInitializerRule">
+        <description>java.performance.RedundantFieldInitializerRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class C {
+    boolean b   = false;    // examples of redundant initializers
+    byte by     = 0;
+    short s     = 0;
+    char c      = 0;
+    int i       = 0;
+    long l      = 0;
+
+    float f     = .0f;    // all possible float literals
+    doable d    = 0d;     // all possible double literals
+    Object o    = null;
+
+    MyClass mca[] = null;
+    int i1 = 0, ia1[] = null;
+
+    class Nested {
+        boolean b = false;
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <!--<rule name="StringInstantiationRule"-->
+          <!--language="java"-->
+          <!--message="java.performance.StringInstantiationRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.StringInstantiationRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.performance.StringInstantiationRule.rule.desc</description>-->
+        <!--<priority>2</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--private String bar = new String("bar"); // just do a String bar = "bar";-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <!--<rule name="StringToStringRule"-->
+          <!--language="java"-->
+          <!--since="1.0"-->
+          <!--message="java.performance.StringToStringRule.rule.msg"-->
+          <!--class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.StringToStringRule"-->
+          <!--deprecated="true">-->
+        <!--<description>java.performance.StringToStringRule.rule.desc</description>-->
+        <!--<priority>3</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+<!--private String baz() {-->
+    <!--String bar = "howdy";-->
+    <!--return bar.toString();-->
+<!--}-->
+<!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
+
+    <rule name="TooFewBranchesForASwitchStatementRule"
+          language="java"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.TooFewBranchesForASwitchStatementRule"
+          message="java.performance.TooFewBranchesForASwitchStatementRule.rule.msg">
+        <description>java.performance.TooFewBranchesForASwitchStatementRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="minimumNumberCaseForASwitch" type="Integer"
+                      description="Minimum number of branches for a switch" min="1" max="100" value="3"/>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//SwitchStatement[
+    (count(.//SwitchLabel) < $minimumNumberCaseForASwitch)
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+// With a minimumNumberCaseForASwitch of 3
+public class Foo {
+    public void bar() {
+        switch (condition) {
+            case ONE:
+                instruction;
+                break;
+            default:
+                break; // not enough for a 'switch' stmt, a simple 'if' stmt would have been more appropriate
+        }
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UseIndexOfCharRule"
+          language="java"
+          message="java.performance.UseIndexOfCharRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.UseIndexOfCharRule">
+        <description>java.performance.UseIndexOfCharRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+String s = "hello world";
+// avoid this
+if (s.indexOf("d") {}
+// instead do this
+if (s.indexOf('d') {}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UseIOStreamsWithApacheCommonsFileItemRule"
+          language="java"
+          message="java.performance.UseIOStreamsWithApacheCommonsFileItemRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.UseIOStreamsWithApacheCommonsFileItemRule">
+        <description>java.performance.UseIOStreamsWithApacheCommonsFileItemRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="version" value="2.0"/>
+            <property name="xpath">
+                <value>
+                    <![CDATA[
+//PrimaryPrefix/Name
+[ends-with(@Image, '.get') or ends-with(@Image, '.getString')]
+[
+    starts-with(@Image, concat(
+        ancestor::MethodDeclaration//FormalParameter/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
+        '.')
+    ) or
+    starts-with(@Image, concat(
+        ancestor::MethodDeclaration//LocalVariableDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
+        '.')
+    ) or
+    starts-with(@Image, concat(
+        ancestor::ClassOrInterfaceBody/ClassOrInterfaceBodyDeclaration/FieldDeclaration/Type/ReferenceType/ClassOrInterfaceType[pmd-java:typeIs('org.apache.commons.fileupload.FileItem')]/../../..//VariableDeclaratorId/@Name,
+        '.')
+    )
+]
+]]>
+                </value>
+            </property>
+        </properties>
+        <example>
+            <![CDATA[
+import org.apache.commons.fileupload.FileItem;
+
+public class FileStuff {
+   private String bad(FileItem fileItem) {
+        return fileItem.getString();
+   }
+
+   private InputStream good(FileItem fileItem) {
+        return fileItem.getInputStream();
+   }
+}
+            ]]>
+        </example>
+    </rule>
+
+    <rule name="UselessStringValueOfRule"
+          language="java"
+          message="java.performance.UselessStringValueOfRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.UselessStringValueOfRule">
+        <description>java.performance.UselessStringValueOfRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public String convert(int i) {
+    String s;
+    s = "a" + String.valueOf(i);    // not required
+    s = "a" + i;                    // preferred approach
+    return s;
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UseStringBufferForStringAppendsRule"
+          language="java"
+          message="java.performance.UseStringBufferForStringAppendsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.UseStringBufferForStringAppendsRule">
+        <description>java.performance.UseStringBufferForStringAppendsRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+public class Foo {
+    String inefficientConcatenation() {
+        String result = "";
+        for (int i = 0; i < 10; i++) {
+            // warning: this concatenation will create one new StringBuilder per iteration
+            result += getStringFromSomeWhere(i);
+        }
+        return result;
+    }
+
+    String efficientConcatenation() {
+        // better would be to use one StringBuilder for the entire loop
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            result.append(getStringFromSomeWhere(i));
+        }
+        return result.toString();
+    }
+}
+]]>
+        </example>
+    </rule>
+
+    <rule name="UseStringBufferLengthRule"
+          language="java"
+          message="java.performance.UseStringBufferLengthRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.performance.UseStringBufferLengthRule">
+        <description>java.performance.UseStringBufferLengthRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+StringBuffer sb = new StringBuffer();
+
+if (sb.toString().equals("")) {}        // inefficient
+
+if (sb.length() == 0) {}                // preferred
+]]>
+        </example>
+    </rule>
+</ruleset>

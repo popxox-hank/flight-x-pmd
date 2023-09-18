@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>bad set contain stream expression</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+        public void foo2(List<String> nameList) {
+            ModelClass model = new ModelClass();
+            model.setName(nameList.stream().filter(Objects::nonNull).findFirst().orElse(""));
+        }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad method is stream</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar() {
+        ModelClass model = new ModelClass();
+        model.setHasTicket(getStreamInfo().anyMatch(x -> Objects.equals("1", x)));
+    }
+
+    private Stream<String> getStreamInfo() {
+        List<String> stringList = new ArrayList<>();
+        stringList.add("1");
+        return stringList.stream();
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>local variable is stream</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar() {
+        Stream<String> list = stringList.stream();
+        ModelClass model = new ModelClass();
+        model.setHasTicket(list.anyMatch(x -> Objects.equals("1", x)));
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>param is stream</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar(Stream<String> list) {
+        ModelClass model = new ModelClass();
+        model.setHasTicket(list.anyMatch(x -> Objects.equals("1", x)));
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad,set mono info</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar(Mono<String> monoInfo) {
+        Mono<Boolean> mono = getMonoInfo();
+        ModelClass model = new ModelClass();
+        model.setMonoInfo(getMonoInfo().map(wrapper -> Objects.equals("test", wrapper)));
+        model.setMonoInfo(monoInfo.map(wrapper -> Objects.equals("test", wrapper)));
+    }
+
+    private Mono<String> getMonoInfo() {
+            return Mono.just("test");
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar() {
+        ModelClass model = new ModelClass();
+        model.setOrderId(multiResponse.getResponseBody().getXProducts().get(0).getOrderId());
+    }
+
+    // getXProducts is stream expression
+    private Mono<SearchXProductResult> getXProducts(SearchXProductContext searchXProductContext) {
+
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar(Mono<String> monoInfo) {
+        ModelClass model = new ModelClass();
+        model.setOrderId(monoInfo);
+    }
+}
+        ]]></code>
+    </test-code>
+</test-data>
