@@ -7,6 +7,7 @@ import net.sourceforge.pmd.lang.java.ast.ASTPrimaryExpression;
 import net.sourceforge.pmd.lang.java.ast.JavaNode;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author haoren
@@ -42,7 +43,6 @@ public class AvoidStreamExpressionInIfStmtsRule extends FlightStreamExpressionRu
             return false;
         }
         isContainStream = false;
-
         for (int i = 0; i < expressionList.size(); i++) {
             loopCheckStreamExpression(expressionList.get(i));
         }
@@ -55,6 +55,9 @@ public class AvoidStreamExpressionInIfStmtsRule extends FlightStreamExpressionRu
             return;
         }
         if (isContainStream) {
+            return;
+        }
+        if (unCheckViolation(node.getFirstChildOfType(ASTPrimaryExpression.class))) {
             return;
         }
         String imageName;

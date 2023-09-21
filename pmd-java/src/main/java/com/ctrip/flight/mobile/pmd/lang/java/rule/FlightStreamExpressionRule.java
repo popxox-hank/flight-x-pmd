@@ -1,5 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule;
 
+import com.google.common.collect.Lists;
 import net.sourceforge.pmd.lang.java.ast.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,6 +17,7 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
     private static final String OPTIONAL_CONSTANT = "optional";
     private static final String MONO_CONSTANT = "mono";
     private static final String FLUX_CONSTANT = "flux";
+    private static final List<String> UN_CHECK_SUFFIX_METHOD_NAME = Lists.newArrayList("get", "ispresent");
     private List<String> parameterStreamVariableList;
     private List<String> methodStreamVariableList;
     private List<String> localStreamVariableList;
@@ -284,6 +286,85 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
         }
     }
 
+
+    /**
+     * 对于Optional对象的get或者isPresent方法特殊处理，不需要检测
+     *
+     * @param expressionNode
+     * @return
+     */
+    protected boolean unCheckViolation(JavaNode expressionNode) {
+        List<String> prefixImageNameList = getPrefixImageName(expressionNode);
+        List<String> suffixImageNameList = getSuffixImageName(expressionNode);
+        if (prefixImageNameList.isEmpty() || suffixImageNameList.size() > 2) {
+            return false;
+        }
+
+        boolean isUnCheckPrefix;
+        boolean isUnCheckSuffix;
+        if (suffixImageNameList.size() < 2) {
+            isUnCheckPrefix = prefixImageNameList.stream()
+                    .anyMatch(imageName -> StringUtils.equalsIgnoreCase(imageName, OPTIONAL_CONSTANT)
+                            || isStreamVariable(imageName));
+            isUnCheckSuffix = prefixImageNameList.stream()
+                    .anyMatch(UN_CHECK_SUFFIX_METHOD_NAME::contains);
+        } else {
+            isUnCheckPrefix = prefixImageNameList.stream()
+                    .anyMatch(imageName -> StringUtils.equalsIgnoreCase(imageName, OPTIONAL_CONSTANT)
+                            || isStreamVariable(imageName));
+            isUnCheckSuffix = suffixImageNameList.stream()
+                    .anyMatch(UN_CHECK_SUFFIX_METHOD_NAME::contains);
+        }
+
+
+        return isUnCheckPrefix && isUnCheckSuffix;
+    }
+
+
+    /**
+     * 获取各节点中的流表达式的名称
+     *
+     * @param expressionNode
+     * @return
+     */
+    private List<String> getSuffixImageName(JavaNode expressionNode) {
+        if (!(expressionNode instanceof ASTPrimaryExpression)) {
+            return Collections.emptyList();
+        }
+
+        ASTPrimaryExpression astPrimaryExpression = (ASTPrimaryExpression) expressionNode;
+        List<String> imageNameList = new ArrayList<>();
+
+        List<ASTPrimarySuffix> suffixes = astPrimaryExpression.findChildrenOfType(ASTPrimarySuffix.class);
+        for (ASTPrimarySuffix suffix : suffixes) {
+            if (!suffix.isArguments() && !suffix.isArrayDereference() && StringUtils.isNotEmpty(suffix.getImage())) {
+                imageNameList.add(suffix.getImage().toLowerCase());
+            }
+        }
+
+        return imageNameList;
+    }
+
+    private List<String> getPrefixImageName(JavaNode expressionNode) {
+        if (!(expressionNode instanceof ASTPrimaryExpression)) {
+            return Collections.emptyList();
+        }
+
+        ASTPrimaryExpression astPrimaryExpression = (ASTPrimaryExpression) expressionNode;
+        List<String> imageNameList = new ArrayList<>();
+
+        ASTPrimaryPrefix astPrimaryPrefix = astPrimaryExpression.getFirstChildOfType(ASTPrimaryPrefix.class);
+        if (Objects.isNull(astPrimaryPrefix)) {
+            return imageNameList;
+        }
+
+        ASTName astName = astPrimaryPrefix.getFirstChildOfType(ASTName.class);
+        if (Objects.isNull(astName)) {
+            return imageNameList;
+        }
+        return getStreamImageNameList(astName.getImage());
+    }
+
     /**
      * 有些内部变量是通过stream方法赋值的需要剔除
      *
@@ -322,4 +403,6 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
             this.streamIndex = streamIndex;
         }
     }
+
+
 }

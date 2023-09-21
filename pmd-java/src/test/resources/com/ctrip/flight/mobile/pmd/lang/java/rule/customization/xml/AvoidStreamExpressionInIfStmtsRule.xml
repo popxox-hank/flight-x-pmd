@@ -114,4 +114,20 @@ public class Foo {
 }
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>ok Optional.isPresent in if</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    private static List<String> getAllPassgerDisallowRefund(Map<String, Boolean> disallowRefundMap) {
+        Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList().stream().findFirst();
+        if (idCardExtType.isPresent()) {
+        }
+    }
+
+}
+        ]]></code>
+    </test-code>
+
 </test-data>

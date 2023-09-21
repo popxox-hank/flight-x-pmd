@@ -130,15 +130,14 @@ Base on PMD Version 6.55.0：([https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_rule
     - [避免条件过多 AvoidTooManyConditionRule](#AvoidTooManyConditionRule)
     - [避免在set方法中传入复杂的流表达式 AvoidUseComplexStreamExpressionInSetMethodRule](#AvoidUseComplexStreamExpressionInSetMethodRule)
     - [避免使用没有Synchronized关键字的Format类 AvoidUseUnSynchronizedFormatRule](#AvoidUseUnSynchronizedFormatRule)
+    - [三元表达式换行规则 TernaryChangeLineRule](#TernaryChangeLineRule)
+    - [避免三元表达式中嵌套三元表达式 AvoidTernaryNestedTernaryRule](#AvoidTernaryNestedTernaryRule)
+    - [避免使用尤达条件表达式 AvoidYodaConditionRule](#AvoidYodaConditionRule)
+    - [避免在get方法中进行set操作 AvoidUseSetFuncInGetMethodRule](#AvoidUseSetFuncInGetMethodRule)
+    - [避免在枚举中通过for语句获取枚举值 AvoidGetEnumUseForStatementRule](#AvoidGetEnumUseForStatementRule)
 
 # TODO
-* 14 自定义规则：三元换行：建议只要三元表达式有换行，就 ？和：处换
-* 以下自定义规则需要讨论：
-* 4 自定义规则：禁止Optional“转Stream” - 需要讨论，JDK9开始Optional中已经提供stream的方法
-* 10 自定义规则：禁止在get方法中进行set操作
-* 11 自定义规则：禁止Yoda方式（既:null == xxx 或 null != xxx)
-* 12 自定义规则：方法中多个参数时候的换行规则（如果有参数换行，需要从第二个参数开始都换行并且和第一个参数对齐）
-* 13 自定义规则：枚举中返回枚举类型的方法禁止使用遍历的o(n)复杂度的方法（既可以先使用Map或Set o(1)复杂度的方法先初始化，后再获取）
+
 
 ### <a name="BestPractices" color="green">最佳实践 BestPractices</a>
 * 1 <a name="AvoidReassigningLoopVariablesRule" /> ``[AvoidReassigningLoopVariablesRule]`` Reassigning loop variables
@@ -2082,7 +2081,7 @@ StringBuffer.toString().equals("")或StringBuffer.toString().length()。
     
     
          // correct
-         Mono<String> resultMono = Flux.fromIterable(iterable)
+        Mono<String> resultMono = Flux.fromIterable(iterable)
                     .map(value -> {
                         // doSomething();
                         return Mono.just();
@@ -2094,30 +2093,41 @@ StringBuffer.toString().equals("")或StringBuffer.toString().length()。
                         return Mono.just();
                     });
     
-          // correct
-          Mono<Boolean> monoResult = getMonoInfo()
+        // correct
+        Mono<Boolean> monoResult = getMonoInfo()
                             .map(wrapper -> Objects.equals("test", wrapper));
-          monoResult = getMonoInfo().map(wrapper -> Objects.equals("test", wrapper));
-          String firstValue = Mono.just(new ArrayList<String>())
+        monoResult = getMonoInfo().map(wrapper -> Objects.equals("test", wrapper));
+        String firstValue = Mono.just(new ArrayList<String>())
                         .flatMap(this::getMonoListInfo)
                         .map(x -> x.get(0))
-                        .block();
+                        .block(); 
+          
+        //correct
+        String name = Optional.ofNullable(model)
+                              .map(ModelClass::getName)
+                              .orElse("");
+        Optional<String> nameOptional = Optional.ofNullable(model);
+        if(nameOptional.isPresent()) {
+              name = nameOptional.get().getName();
+        }
+        
+        //incorrect
+        String name = Optional.ofNullable(model).map(ModelClass::getName).orElse("");
       }
     }
     ```
     
 * 2 <a name="ConditionalTooLongNeedChangeLineRule" /> ``[ConditionalTooLongNeedChangeLineRule]`` If the length of 
-the conditional statement of the conditional judgment statement exceeds 50 characters a newline is required and the 
+the conditional statement of the conditional judgment statement exceeds 80 characters a newline is required and the 
 conditional character needs to be change line together.\
-``[条件语句太长需要换行]`` 条件判断语句的条件语句长度超过50个字符需要换行，条件符需要跟着一起换行。
+``[条件语句太长需要换行]`` 条件判断语句的条件语句长度超过80个字符需要换行，条件符需要跟着一起换行。\
+参数配置(config parameter)：conditionalLengthLimit \
 
     ```java
     // incorrect
     public class Foo {
       public Foo(List<String> stringList, String input) {
         boolean isTest = Objects.nonNull(input) && input.equals("test") && StringList.contains("conditionalTooLongNeedChangeLine");
-        boolean isTest2 = Objects.nonNull(input) && input.equals("test") // change line
-                && StringList.contains("conditionalTooLongNeedChangeLine");
       
         if(Objects.nonNull(input) && input.equals("test") && StringList.contains("conditionalTooLongNeedChangeLine")) {
                 // doSomething();
@@ -2131,7 +2141,8 @@ conditional character needs to be change line together.\
         boolean isTest = Objects.nonNull(input)
                               && input.equals("test")
                               && StringList.contains("conditionalTooLongNeedChangeLine");
-        boolean isTest2 = Objects.nonNull(input) && input.equals("test"); // conditional statements can be no longer than 50 characters
+        // conditional statements can be no longer than 80 characters
+        boolean isTest2 = Objects.nonNull(input) && input.equals("test");
       
         if(Objects.nonNull(input)
                 && input.equals("test")
@@ -2203,7 +2214,8 @@ conditional statements, which may confuse other readers.\
 * 4 <a name="StreamExpressionTooLongRule" /> ``[StreamExpressionTooLongRule]`` If the stream expression is too long,
  it will affect the readability and comprehension of the code. If the stream expression exceeds 30 lines, it needs to 
  be split.The number of statistical lines does not include comments.\
-``[stream表达式太长]`` stream表达式太长会影响可读性和对代码的理解。流表达式超过30行需要进行拆分。统计数量行不包含注释。
+``[stream表达式太长]`` stream表达式太长会影响可读性和对代码的理解。流表达式超过30行需要进行拆分。统计数量行不包含注释。\
+参数配置(config parameter)：maxLine
 
     ```java
     public class Foo {
@@ -2248,6 +2260,15 @@ expression or Optional expression in if statements.\
       
         private boolean isTestValue(String input) {
             return Optional.ofNullable(input).orElse("").equals("test");
+        }
+      
+        // it's ok
+        public void bar(ModelClass model) {
+             Optional<ModelClass> optional = Optional.ofNullable(model);
+             if(optional.isPresent()) {
+             }
+             if(optional.get()!=null || optional.get().getXXX()!=null) {
+             }
         }
     }
     ```   
@@ -2305,8 +2326,8 @@ in switch can be refactored into a method for use.\
 * 8 <a name="AvoidStreamExpressionInStreamExpressionRule" /> ``[AvoidStreamExpressionInStreamExpressionRule]`` It is 
 not recommended to nest the stream expression in the stream expression,which will make the whole stream expression 
 extremely complicated and difficult to understand.\
-``[避免在Stream表达式中包含stream表达式]`` 不建议在stream表达式中再嵌套stream表达式，这样会使整个stream表达式异常复杂并难以理解。
-
+``[避免在Stream表达式中包含stream表达式]`` 不建议在stream表达式中再嵌套stream表达式，这样会使整个stream表达式异常复杂并难以理解。\
+参数配置(config parameter)：streamExpressionLimitNum
     ```java
     public class Foo {
       public Foo() {
@@ -2437,7 +2458,8 @@ java.lang.IllegalStateException: Duplicate key错误
     ``` 
 * 11 <a name="AvoidTooManyConditionRule" /> ``[AvoidTooManyConditionRule]`` here are too many conditions, which 
 affects  the understanding of the code. The default threshold is 4.\
-``[避免过多条件]`` 条件过多，影响代码的理解，默认阀值是4。
+``[避免过多条件]`` 条件过多，影响代码的理解，默认阀值是4。\
+参数配置(config parameter)：conditionLimitedNum
 
     ```java
     // incorrect
@@ -2461,7 +2483,8 @@ affects  the understanding of the code. The default threshold is 4.\
 * 12 <a name="AvoidUseComplexStreamExpressionInSetMethodRule" /> ``[AvoidUseComplexStreamExpressionInSetMethodRule]``
   Passing complex stream expressions as input  parameters of the set method will increase the complexity of 
   understanding and reading.\
-``[避免在set方法中传入复杂的流表达式]`` set方法的入参传递复杂的stream表达式会增加理解和阅读上的复杂度。
+``[避免在set方法中传入复杂的流表达式]`` set方法的入参传递复杂的stream表达式会增加理解和阅读上的复杂度。\
+参数配置(config parameter)：startWithMethodName、complexStreamLayerNum 
 
     ```java
     // incorrect
@@ -2469,6 +2492,11 @@ affects  the understanding of the code. The default threshold is 4.\
           // incorrect set's formal param contain complext stream expression
           public void foo2(List<String> nameList) {
               ModelClass model = new ModelClass();
+              model.setName(nameList.stream()
+                                    .filter(Objects::nonNull)
+                                    .findFirst()
+                                    .orElse(""));
+              // this rule is not violate,but violate in StreamExpressionStyleRule
               model.setName(nameList.stream().filter(Objects::nonNull).findFirst().orElse(""));
           }
       
@@ -2481,10 +2509,16 @@ affects  the understanding of the code. The default threshold is 4.\
                                     .orElse("");
               model.setName(name);
               model.setMonoInfo(monoInfo);
+              
+              Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList().stream().findFirst();
+              if(idCardExtType.isPresent()){
+                  // it's ok
+                  travelerInfo.setCardRefID(idCardExtType.get().getReferenceID());
+              }
           }
     }
     ```
-* 12 <a name="AvoidUseUnSynchronizedFormatRule" /> ``[AvoidUseUnSynchronizedFormatRule]``
+* 13 <a name="AvoidUseUnSynchronizedFormatRule" /> ``[AvoidUseUnSynchronizedFormatRule]``
   In scenarios where DateFormat, SimpleDateFormat, NumberFormat, and MessageFormat are static member variables, 
   using methods such as format and parse is thread-unsafe.  In multi-threaded scenarios, it is recommended to use 
   non-static member variables. For Date related, you can use Apache's FastDateFormat.\
@@ -2532,7 +2566,196 @@ affects  the understanding of the code. The default threshold is 4.\
             format.parse();
         }
     }
+    ``` 
+* 14 <a name="TernaryChangeLineRule" /> ``[TernaryChangeLineRule]``If the ternary expression needs to change line, 
+the '?' and ':' expressions need to change line together.\
+``[三元表达式换行规则]`` 三元表达式如果换行需要'?'和':'表达式一起换行。
+
+    ```java
+    public class Foo {
+        // incorrect
+        void foo() {
+            String result = isOk() ? "T"
+                                   : "F";
+            String result2 = isOk()
+                                   ? "T" : "F";
+        
+            String value = Objects.equals(model.getName(),"test")
+                                   ? "TestName" : "RealName";
+        }
+        
+        // correct
+        void foo() {
+            String result = isOk() ? "T" : "F";
+            String value = Objects.equals(model.getName(),"test")
+                                ? "TestName"
+                                : "RealName";
+        }
+    }
     ```      
+* 15 <a name="AvoidTernaryNestedTernaryRule" /> ``[AvoidTernaryNestedTernaryRule]``Nesting ternary expressions in 
+ternary expressions will increase the complexity of statement understanding.\
+``[避免三元表达式中嵌套三元表达式]`` 三元表达式中嵌套三元表达式会增加语句理解的复杂度。
+
+    ```java
+    public class Foo {
+        // incorrect
+        void foo() {
+                String result = isOk() ? "T" : condition == 2 ? "F" : "T";
+                String value = Objects.equals(model.getName(),"test")
+                                ? "TestName"
+                                : Objects.equals(model.getName(),"trip")
+                                    ? "TripName"
+                                    : "RealName";
+        }
+        
+        // correct
+        void foo() {
+                String conditionResult = condition == 2 ? "F" : "T";
+                String result = isOk() ? "T" : conditionResult;
+        
+                String tripName = Objects.equals(name,"trip") ? "TripName" : "RealName";
+                String value = Objects.equals(model.getName(),"test")
+                                ? "TestName"
+                                : tripName;
+        }
+    }
+    ```   
+* 16 <a name="AvoidYodaConditionRule" /> ``[AvoidYodaConditionRule]``Although Yoda's conditional expression can avoid 
+the assignment operation of a single equal sign, this method is not consistent with reading habits. It is recommended 
+to place constants on the left side of conditional statements or use methods such as Objects.isNull and Objects.equals.\
+``[避免使用尤达条件表达式]`` 尤达条件表达式虽然可以避免单个等号的赋值操作，但是此方式不符合阅读的习惯。建议把常量放在条件语句的左侧或者
+使用Objects.isNull、Objects.equals等方法。
+
+    ```java
+    public class Foo {
+        // incorrect
+        void foo() {
+                String result = null == value ? "F" : "T";
+                if(2 != value) {
+        
+                }
+                if(null == model.getA()){
+                }
+        }
+        
+        // correct
+        void foo() {
+                String result = value == null ? "F" : "T";
+                if(value != 2) {
+        
+                }
+                if(model.getA() == null){
+                }
+        }
+    }
+    ```  
+* 17 <a name="AvoidUseSetFuncInGetMethodRule" /> ``[AvoidUseSetFuncInGetMethodRule]``Avoid using the set function in 
+methods starting with get.\
+``[避免在get方法中进行set操作]`` 避免在get开头的方法中使用set的操作。\
+参数配置(config parameter)：startWithMethodName、forbiddenStartWithFuncName 
+
+    ```java
+    public class Foo {
+        // incorrect
+        public OrderInfoModel getOrderInfo() {
+                doSomething();
+                orderInfoModel.setName("name"); // incorrect
+                orderInfoModel.setValue("value");// incorrect
+                if(isOk()){
+                    orderInfoModel.setCondition(true);// incorrect
+                }
+                return orderInfoModel;
+        }
+      
+        // incorrect
+        public List<OrderInfoModel> getOrderInfo() {
+                doSomething();
+                return list.stream()
+                           .filter(Objects::nonNull)
+                           .map(model->{
+                                OrderInfoModel orderInfo = new OrderInfoModel();
+                                orderInfo.setName(model.getName()); // incorrect
+                                orderInfo.setValue(model.getValue()); // incorrect
+                                return orderInfo;
+                           })
+                           .collect(Collectors.toList());
+        }
+        
+        // correct
+        public OrderInfoModel getOrderInfo() {
+              doSomething();
+              return buildOrderInfoModel();
+        }
+        
+        private OrderInfoModel buildOrderInfoModel(){
+               orderInfoModel.setName("name");
+               orderInfoModel.setValue("value");
+               if(isOk()){
+                     orderInfoModel.setCondition(true);
+               }
+               return orderInfoModel;
+        }
+      
+        // correct
+        public OrderInfoModel getOrderInfo() {
+              doSomething();
+              OrderInfoModel orderInfoModel = new OrderInfoModel();     
+              setOrderInfoModel(orderInfoModel);
+              return orderInfoModel;
+        } 
+    }
+    ```  
+* 18 <a name="AvoidGetEnumUseForStatementRule" /> ``[AvoidGetEnumUseForStatementRule]``Avoid obtaining the enumeration 
+value through the for statement in the enumeration, because you cannot estimate the complexity of calling this method. 
+It is recommended to obtain it by initializing the Map.\
+``[避免在枚举中通过for语句获取枚举值]`` 避免在枚举中通过for语句获取枚举值，因为你无法预估调用该方法的复杂度，建议可以通过初始化Map来获取。
+
+    ```java
+    public enum ColorEnum {
+        NA(0),
+        RED(1),
+        BLUE(2),
+        GREEN(3);
+    
+        private int value;
+    
+        ColorEnum(int value) {
+            this.value = value;
+        }
+    
+        public int getValue() {
+            return this.value;
+        }
+    
+        // incorrect
+        public static ColorEnum valueOf(int value) {
+            return Arrays.stream(ColorEnum.values())
+                    .filter(x -> x.getValue() == value)
+                    .findAny()
+                    .orElse(ColorEnum.NA);
+        }
+        // incorrect
+        public static ColorEnum findByValue(int value) {
+            for(ColorEnum colorEnum : ColorEnum.values) {
+                if (colorEnum.getValue() == value) {
+                    return colorEnum;
+                }
+            }
+            return ColorEnum.NA;
+        }
+    
+        // suggest
+        private static final Map<Integer, ColorEnum> VALUE_MAP = Collections.unmodifiableMap(
+                Arrays.stream(ColorEnum.values())
+                      .collect(Collectors.toMap(ColorEnum::getValue, Function.identity(), (k1, k2) -> k1)));
+    
+        public static ColorEnum valueOf(int value) {
+            return VALUE_MAP.getOrDefault(value, ColorEnum.NA);
+        }
+    }
+    ``` 
+    
 
     
     

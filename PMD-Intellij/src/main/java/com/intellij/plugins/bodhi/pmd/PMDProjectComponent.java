@@ -16,10 +16,7 @@ import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ToolWindowType;
+import com.intellij.openapi.wm.*;
 import com.intellij.plugins.bodhi.pmd.actions.PMDCustom;
 import com.intellij.plugins.bodhi.pmd.actions.PMDLanguage;
 import com.intellij.plugins.bodhi.pmd.actions.PreDefinedMenuGroup;
@@ -73,6 +70,10 @@ public class PMDProjectComponent implements ProjectComponent, PersistentStateCom
     private static final NotificationGroup BALLOON =
             NotificationGroupManager.getInstance().getNotificationGroup("PMDChangeLanguageBalloon");
     private static final String BUNDLE = "messages.PMD-Intellij";
+//    private final RegisterToolWindowTask registerToolWindowTask =
+//            new RegisterToolWindowTask(TOOL_ID, ToolWindowAnchor.BOTTOM, null,
+//                    false, true, false, false,
+//                    null, null, null);
 
     /**
      * Creates a PMD Project component based on the project given.
@@ -216,6 +217,7 @@ public class PMDProjectComponent implements ProjectComponent, PersistentStateCom
      */
     private void registerToolWindow() {
         if (toolWindowManager.getToolWindow(TOOL_ID) == null) {
+//            resultWindow = toolWindowManager.registerToolWindow(registerToolWindowTask);
             resultWindow = toolWindowManager.registerToolWindow(TOOL_ID, true, ToolWindowAnchor.BOTTOM);
             Content content = ContentFactory.SERVICE.getInstance().createContent(resultPanel, "", false);
             resultWindow.getContentManager().addContent(content);

@@ -1,12 +1,12 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
 import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightStreamExpressionRule;
+import com.google.common.collect.Lists;
 import net.sourceforge.pmd.lang.java.ast.*;
-import net.sourceforge.pmd.properties.PropertyDescriptor;
-import net.sourceforge.pmd.properties.PropertyFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,6 +15,8 @@ import java.util.Objects;
  * Create at: 2023-08-09
  */
 public class StreamExpressionStyleRule extends FlightStreamExpressionRule {
+
+
     public StreamExpressionStyleRule() {
         super();
         addRuleChainVisit(ASTPrimaryExpression.class);
@@ -43,6 +45,9 @@ public class StreamExpressionStyleRule extends FlightStreamExpressionRule {
         return false;
     }
 
+
+
+
     private boolean isStreamExpressionViolation(String imageName,
                                                 int baseStreamLine,
                                                 JavaNode currentNode,
@@ -59,6 +64,11 @@ public class StreamExpressionStyleRule extends FlightStreamExpressionRule {
         int streamIndex = getCurrentStreamIndex(expressionNode);
 
         if (currentNode.jjtGetChildIndex() <= streamIndex) {
+            return false;
+        }
+
+        // 判断是否是不需要检查违规的节点Optional.get().getXXX不是一个流表达式
+        if (unCheckViolation(expressionNode)) {
             return false;
         }
 

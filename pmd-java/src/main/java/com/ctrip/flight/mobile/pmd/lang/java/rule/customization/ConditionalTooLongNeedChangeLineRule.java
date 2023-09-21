@@ -16,7 +16,7 @@ public class ConditionalTooLongNeedChangeLineRule extends FlightJavaRule {
     private static final PropertyDescriptor<Integer> PROBLEM_CONDITIONAL_LENGTH_LIMIT_DESCRIPTOR
             = PropertyFactory.intProperty("conditionalLengthLimit")
             .desc("This value is used to report how many characters the conditional statement needs to wrap")
-            .defaultValue(50)
+            .defaultValue(80)
             .build();
 
     public ConditionalTooLongNeedChangeLineRule() {

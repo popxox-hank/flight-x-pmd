@@ -26,5 +26,10 @@ public class CustomizationRuleTest extends SimpleAggregatorTst {
         addRule(RULE_SET, "AvoidTooManyConditionRule");
         addRule(RULE_SET, "AvoidUseComplexStreamExpressionInSetMethodRule");
         addRule(RULE_SET, "AvoidUseUnSynchronizedFormatRule");
+        addRule(RULE_SET, "TernaryChangeLineRule");
+        addRule(RULE_SET, "AvoidTernaryNestedTernaryRule");
+        addRule(RULE_SET, "AvoidYodaConditionRule");
+        addRule(RULE_SET, "AvoidUseSetFuncInGetMethodRule");
+        addRule(RULE_SET, "AvoidGetEnumUseForStatementRule");
     }
 }

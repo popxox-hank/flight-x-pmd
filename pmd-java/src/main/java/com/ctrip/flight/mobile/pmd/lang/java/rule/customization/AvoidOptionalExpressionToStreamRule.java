@@ -24,13 +24,13 @@ public class AvoidOptionalExpressionToStreamRule extends FlightJavaRule {
     @Override
     public Object visit(ASTPrimaryExpression node, Object data) {
         if (checkPrimaryPrefixContainOptional(node)
-                && checkPrimarysuffixContainOptional(node)) {
+                && checkPrimarySuffixContainOptional(node)) {
             addViolationWithPrecisePosition(data, node);
         }
         return data;
     }
 
-    private boolean checkPrimarysuffixContainOptional(ASTPrimaryExpression node) {
+    private boolean checkPrimarySuffixContainOptional(ASTPrimaryExpression node) {
         List<ASTPrimarySuffix> primarySuffixList = node.findChildrenOfType(ASTPrimarySuffix.class);
         if (primarySuffixList.isEmpty()) {
             return false;

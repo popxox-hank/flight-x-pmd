@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>failure in get method use set function</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    OrderInfoModel getOrderInfo() {
+        doSomething();
+        orderInfoModel.setName("name");
+        orderInfoModel.setValue("value");
+        if(isOk()){
+            orderInfoModel.setCondition(true);
+        }
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    OrderInfoModel getOrderInfo() {
+        doSomething();
+        return buildOrderInfoModel();
+    }
+
+    private OrderInfoModel buildOrderInfoModel(){
+        orderInfoModel.setName("name");
+        orderInfoModel.setValue("value");
+        if(isOk()){
+            orderInfoModel.setCondition(true);
+        }
+        return orderInfoModel;
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok contain set but not function</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    String getFoo() {
+        doSomething();
+        setModel(value,result);
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>failure stream contain set function</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    List<OrderInfoModel> getFoo() {
+        doSomething();
+        return list.stream()
+                   .filter(Objects::nonNull)
+                   .map(model->{
+                        OrderInfoModel orderInfo = new OrderInfoModel();
+                        orderInfo.setName(model.getName());
+                        orderInfo.setValue(model.getValue());
+                        return orderInfo;
+                   })
+                   .collect(Collectors.toList());
+    }
+}
+]]></code>
+    </test-code>
+</test-data>

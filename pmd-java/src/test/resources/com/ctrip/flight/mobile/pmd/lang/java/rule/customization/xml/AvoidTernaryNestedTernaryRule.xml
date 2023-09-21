@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>failure case</description>
+        <expected-problems>3</expected-problems>
+        <code><![CDATA[
+        public class Foo {
+            public void foo() {
+                 boolean result = isOk() ? true : isOK2() ? true : false;
+                 boolean result2 = isOk() ? true : condition == 2 ? true : false;
+                 String value = Objects.equals(model.getName(),"test")
+                        ? "TestName"
+                        : Objects.equals(model.getName(),"trip")
+                            ? "TripName"
+                            : "RealName";
+            }
+        }
+            ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+        public class Foo {
+            public void foo(int condition) {
+                 boolean isCondition = condition == 2 ? true : false;
+                 boolean result2 = isOk() ? true : isCondition;
+                 String value = Objects.equals(model.getName(),"test")
+                        ? "TestName"
+                        : getTripName(model.getName());
+            }
+
+            private String getTripName(String name){
+                return Objects.equals(name,"trip") ? "TripName" : "RealName";
+            }
+        }
+            ]]></code>
+    </test-code>
+</test-data>

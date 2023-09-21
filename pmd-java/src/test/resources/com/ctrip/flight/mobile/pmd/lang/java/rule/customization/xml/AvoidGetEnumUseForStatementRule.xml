@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>failure use O(n) complex statement for</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+public enum ColorEnum {
+    NA(0),
+    RED(1),
+    BLUE(2),
+    GREEN(3);
+
+    private int value;
+
+    ColorEnum(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return this.value;
+    }
+
+    public static ColorEnum valueOf(int value) {
+        return Arrays.stream(ColorEnum.values())
+                .filter(x -> x.getValue() == value)
+                .findAny()
+                .orElse(ColorEnum.NA);
+    }
+
+    public static ColorEnum findByValue(int value) {
+        for(ColorEnum colorEnum : ColorEnum.values) {
+            if (colorEnum.getValue() == value) {
+                return colorEnum;
+            }
+        }
+        return ColorEnum.NA;
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>success</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public enum ColorEnum {
+    NA(0),
+    RED(1),
+    BLUE(2),
+    GREEN(3);
+
+    private int value;
+
+    ColorEnum(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return this.value;
+    }
+
+    private static final Map<Integer, ColorEnum> VALUE_MAP = Collections.unmodifiableMap(
+            Arrays.stream(ColorEnum.values())
+                  .collect(Collectors.toMap(ColorEnum::getValue, Function.identity(), (k1, k2) -> k1)));
+
+    public static ColorEnum findByValue(int value) {
+        return VALUE_MAP.getOrDefault(value, ColorEnum.NA);
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>success not in enum class</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public static ColorEnum findByValue(int value) {
+        for(ColorEnum colorEnum : ColorEnum.values) {
+            if (colorEnum.getValue() == value) {
+                return colorEnum;
+            }
+        }
+        return ColorEnum.NA;
+    }
+}
+        ]]></code>
+    </test-code>
+</test-data>

@@ -22,14 +22,14 @@
 
             // normal stream
             List<String> filterList = stringList.stream()
-            .filter(Objects::nonNull)
-            .filter(x -> Objects.equals("1", x))
-            .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .filter(x -> Objects.equals("1", x))
+                .collect(Collectors.toList());
             filterList = stringList
-            .stream()
-            .filter(Objects::nonNull)
-            .filter(x -> Objects.equals("1", x))
-            .collect(Collectors.toList());
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(x -> Objects.equals("1", x))
+                .collect(Collectors.toList());
 
 
             // local stream
@@ -427,5 +427,20 @@
         }
     }
     ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok Optional get is special no check</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public String bar() {
+        String referenceID2 = Optional.ofNullable(travelInfo).get().getReferenceID();
+        Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList()
+                                                    .stream()
+                                                    .findFirst();
+        String referenceID = idCardExtType.get().getReferenceID();
+    }
+}]]></code>
     </test-code>
 </test-data>

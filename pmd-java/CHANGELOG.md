@@ -1,6 +1,22 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 # pmd-java Changelog
 
+## [1.0.6]
+### Changed
+- 流表达式式样规则(StreamExpressionStyleRule)对于Optional.get().getXXX()做特殊处理，不换行也不会判定为违规
+- 避免在if语句中使用流表达式规则(AvoidStreamExpressionInIfStmtsRule)对于流对象的isPresent或get().getXXX，例如if(Optional.isPresent()),不会判定违规
+- 避免在set方法中传入复杂的流表达式(AvoidUseComplexStreamExpressionInSetMethodRule)增加判断复杂流表达式的阀值参数'complexStreamLayerNum'(默认阀值1）,
+  - 只有当流表达式的层级超过配置值才会判定为是复杂流表达式，例如：model.setHasTicket(listStream.anyMatch(...)),该场景下流表达式的层级只有1.
+  - 同时对于整个流表达式也增加了所用行数判定，如果所用行数超过该配置也会被判定为复杂流表达式(比如anyMatch中的条件判断语句有换行)。
+- 条件语句太长需要换行(ConditionalTooLongNeedChangeLineRule)的阀值修改为80
+### Added
+- 增加自定义规则
+  - 三元表达式换行规则(TernaryChangeLineRule)
+  - 避免三元表达式中嵌套三元表达式(AvoidTernaryNestedTernaryRule)
+  - 避免使用尤达条件表达式(AvoidYodaConditionRule)
+  - 避免在get方法中进行set操作(AvoidUseSetFuncInGetMethodRule)
+  - 避免在枚举中通过for语句获取枚举值(AvoidGetEnumUseForStatementRule)
+  
 ## [1.0.5]
 ### Changed
 - 避免复杂表达式规则(AvoidComplexConditionalRule)范围增加，包含位或(|)、位与(&)、异或(^)、右移(>>>、>>)、左移(<<)、非(!、~)。

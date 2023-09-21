@@ -22,11 +22,17 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
             .desc("this is reports the method start with literals need handle")
             .defaultValue(Lists.newArrayList("set"))
             .build();
+    private static final PropertyDescriptor<Integer> PROBLEM_COMPLEX_STREAM_NUM_DESCRIPTOR
+            = PropertyFactory.intProperty("complexStreamLayerNum")
+            .desc("this is reports stream expression over then layer num")
+            .defaultValue(1)
+            .build();
     private boolean isContainStream;
 
     public AvoidUseComplexStreamExpressionInSetMethodRule() {
         super();
         definePropertyDescriptor(PROBLEM_START_WITH_METHOD_NAME_DESCRIPTOR);
+        definePropertyDescriptor(PROBLEM_COMPLEX_STREAM_NUM_DESCRIPTOR);
         addRuleChainVisit(ASTPrimaryExpression.class);
         addRuleChainVisit(ASTArguments.class);
     }
@@ -58,7 +64,7 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
             return false;
         }
 
-        if (isDirectSetStream(expressionList)) {
+        if (isSetNotComplexStream(expressionList)) {
             return false;
         }
 
@@ -91,12 +97,12 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
     }
 
     /**
-     * 判断是否直接set流，如果是的话不告警
+     * 判断是否直接set流或者不是set复杂的流表达式，如果是的话不告警
      *
      * @param expressionList
      * @return
      */
-    private boolean isDirectSetStream(List<ASTExpression> expressionList) {
+    private boolean isSetNotComplexStream(List<ASTExpression> expressionList) {
         List<List<ASTPrimaryExpression>> primaryExpressionList = expressionList.stream()
                 .filter(Objects::nonNull)
                 .map(x -> x.findDescendantsOfType(ASTPrimaryExpression.class))
@@ -104,14 +110,35 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
         if (primaryExpressionList.isEmpty()) {
             return false;
         }
+        final int steamLayerNum = getProperty(PROBLEM_COMPLEX_STREAM_NUM_DESCRIPTOR);
         for (List<ASTPrimaryExpression> astPrimaryList : primaryExpressionList) {
             for (ASTPrimaryExpression astPrimaryExpression : astPrimaryList) {
-                if (astPrimaryExpression.getNumChildren() > 1) {
+                // 对于复杂流表达式的判断是-流表达的层级大于配置数且总行数大于配置数-1
+                if (getRealChildNum(astPrimaryExpression) > steamLayerNum
+                        && astPrimaryExpression.getEndLine() - astPrimaryExpression.getBeginLine() > (steamLayerNum - 1)) {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    /**
+     * 获取实际的表达式节点层级
+     *
+     * @param astPrimaryExpression
+     * @return
+     */
+    private int getRealChildNum(ASTPrimaryExpression astPrimaryExpression) {
+        int childNum = 0;
+        List<ASTPrimarySuffix> suffixes = astPrimaryExpression.findChildrenOfType(ASTPrimarySuffix.class);
+        for (ASTPrimarySuffix suffix : suffixes) {
+            if (!suffix.isArguments() && !suffix.isArrayDereference()) {
+                childNum++;
+            }
+        }
+        //加上主节点prefix
+        return childNum + 1;
     }
 
     /**
@@ -139,19 +166,19 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
             return false;
         }
 
-        final List<String> startWithMethodNameLsit = getProperty(PROBLEM_START_WITH_METHOD_NAME_DESCRIPTOR);
+        final List<String> startWithMethodNameList = getProperty(PROBLEM_START_WITH_METHOD_NAME_DESCRIPTOR);
         List<String> imageNameList = astNameList.stream()
                 .filter(x -> StringUtils.isNotEmpty(x.getImage()))
                 .map(x -> getStreamImageNameList(x.getImage()))
                 .flatMap(List::stream)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        if (startWithMethodNameLsit.isEmpty()
+        if (startWithMethodNameList.isEmpty()
                 || imageNameList.isEmpty()) {
             return false;
         }
 
-        return startWithMethodNameLsit
+        return startWithMethodNameList
                 .stream()
                 .anyMatch(x -> matchStartName(x, imageNameList));
 

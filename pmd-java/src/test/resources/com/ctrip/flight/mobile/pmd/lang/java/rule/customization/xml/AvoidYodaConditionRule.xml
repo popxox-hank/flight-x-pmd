@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>bad use yoda condition</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // incorrect
+    void foo() {
+        String result = null == value ? "F" : "T";
+        if(2 != value) {
+            result = "T";
+        } else {
+            result = "F";
+        }
+
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>bad use yoda condition</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // incorrect
+    void foo() {
+        if(2 != model.getA().getB().getC()) {
+            result = "T";
+        } else {
+            result = "F";
+        }
+
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok un use yoda condition</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // correct
+    void foo() {
+        String result = value == null ? "F" : "T";
+        if(value != 2){
+        }
+        if(model.getA().getB().getC() == 2){
+        }
+        if(result == value){
+        }
+
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok un use yoda condition</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    // correct
+    void foo() {
+        if(urlRegex.indexOf("*") != urlRegex.length() - 1){
+        }
+
+        if(leftBracket + 1 == rightBracket) {
+        }
+
+    }
+}
+]]></code>
+    </test-code>
+
+
+</test-data>

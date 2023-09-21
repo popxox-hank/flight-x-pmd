@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
 
     <test-code>
-        <description>failure</description>
+        <description>failure-1</description>
         <expected-problems>3</expected-problems>
         <code><![CDATA[
 public class Foo {
@@ -36,7 +36,7 @@ public class Foo {
     </test-code>
 
     <test-code>
-        <description>failure</description>
+        <description>failure-2</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
 public class Foo {

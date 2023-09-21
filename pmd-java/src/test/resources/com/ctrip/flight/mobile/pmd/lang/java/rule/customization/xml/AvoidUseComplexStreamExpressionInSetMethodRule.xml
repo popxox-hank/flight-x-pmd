@@ -11,6 +11,11 @@
 public class Foo {
         public void foo2(List<String> nameList) {
             ModelClass model = new ModelClass();
+            model.setName(nameList.stream()
+                                  .filter(Objects::nonNull)
+                                  .findFirst()
+                                  .orElse(""));
+            // this rule is not violate,but violate in StreamExpressionStyleRule
             model.setName(nameList.stream().filter(Objects::nonNull).findFirst().orElse(""));
         }
 }
@@ -24,7 +29,8 @@ public class Foo {
 public class Foo {
     public void bar() {
         ModelClass model = new ModelClass();
-        model.setHasTicket(getStreamInfo().anyMatch(x -> Objects.equals("1", x)));
+        model.setHasTicket(getStreamInfo().anyMatch(x -> Objects.equals("1", x)
+            || Objects.equals("2", x)));
     }
 
     private Stream<String> getStreamInfo() {
@@ -44,7 +50,8 @@ public class Foo {
     public void bar() {
         Stream<String> list = stringList.stream();
         ModelClass model = new ModelClass();
-        model.setHasTicket(list.anyMatch(x -> Objects.equals("1", x)));
+        model.setHasTicket(list.filter(Objects::nonNull)
+                               .anyMatch(x -> Objects.equals("1", x)));
     }
 }
         ]]></code>
@@ -57,15 +64,16 @@ public class Foo {
 public class Foo {
     public void bar(Stream<String> list) {
         ModelClass model = new ModelClass();
-        model.setHasTicket(list.anyMatch(x -> Objects.equals("1", x)));
+        model.setHasTicket(list.filter(Objects::nonNull)
+                               .anyMatch(x -> Objects.equals("1", x)));
     }
 }
         ]]></code>
     </test-code>
 
     <test-code>
-        <description>bad,set mono info</description>
-        <expected-problems>2</expected-problems>
+        <description>ok,not complex stream expression</description>
+        <expected-problems>0</expected-problems>
         <code><![CDATA[
 public class Foo {
     public void bar(Mono<String> monoInfo) {
@@ -108,6 +116,19 @@ public class Foo {
     public void bar(Mono<String> monoInfo) {
         ModelClass model = new ModelClass();
         model.setOrderId(monoInfo);
+    }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar() {
+        Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList().stream().findFirst();
+        travelerInfo.setCardRefID(idCardExtType.get().getReferenceID());
     }
 }
         ]]></code>

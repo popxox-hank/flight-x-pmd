@@ -2,6 +2,31 @@
 
 # PMDPlugin Changelog
 
+## [1.0.6]
+### Changed
+- PMD dependencies to com.ctrip.flight.mobile.pmd:pmd-java:1.0.6
+- The version and the dependent pmd-java version are 
+- StreamExpressionStyleRule special processing is done for Optional.get().getXXX(), and it will not be judged as a 
+violation without line breaks.
+- AvoidStreamExpressionInIfStmtsRule for the isPresent or get().getXXX of the stream object, such as if(Optional
+.isPresent()), no violation will be determined
+- AvoidUseComplexStreamExpressionInSetMethodRule Add the threshold parameter 'complexStreamLayerNum' for judging complex
+ stream expressions (default threshold 1).
+  - Only when the level of the stream expression exceeds the configured value will it be determined to be a complex 
+ stream expression.for example: model.setHasTicket(listStream.anyMatch(...)), the level of the stream expression in 
+ this scenario is only 1.
+  - At the same time, the judgment of the number of lines used is also added to the entire flow expression. If the 
+ number of lines used exceeds the configuration, it will also be judged as a complex flow expression.for example: the 
+ conditional judgment statement in anyMatch has line breaks.
+- ConditionalTooLongNeedChangeLineRule change threshold to 80.
+### Added
+- Add Customization Rules(see detail readme.md)
+  - TernaryChangeLineRule
+  - AvoidTernaryNestedTernaryRule
+  - AvoidYodaConditionRule
+  - AvoidUseSetFuncInGetMethodRule
+  - AvoidGetEnumUseForStatementRule
+  
 ## [1.0.4]
 ### Changed
 - PMD dependencies to com.ctrip.flight.mobile.pmd:pmd-java:1.0.5

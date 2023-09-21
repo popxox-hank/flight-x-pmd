@@ -10,7 +10,7 @@
     <groupId>com.ctrip.flight.mobile.pmd</groupId>
     <artifactId>flight-pmd</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <modules>
         <module>pmd-java</module>
     </modules>
