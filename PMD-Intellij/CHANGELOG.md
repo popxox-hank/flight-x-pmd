@@ -2,6 +2,28 @@
 
 # PMDPlugin Changelog
 
+## [1.0.7]
+### Added
+-Add Customization Rules(see detail readme.md)
+  - AvoidOperateExternalVariInStreamForeachStmtsRule
+  
+### Changed
+- All Customization rules remove violation checks for Test classes (classes that require the beginning of Test or the 
+end of Test, Tests and TestCase) or methods marked with @Test
+  - add base class FlightCustomizationRule to identify and process Test class and @Test identification method
+- AvoidUseSetFuncInGetMethodRule adds violation interception for xxxx.XXX().setXXX() or xxxx.XXX().XXX()...setXXX()
+- Reconstruct the judgment logic of whether it is a stream expression in the base class FlightStreamExpressionRule
+- Refactor the implementation of AvoidStreamExpressionInIfStmtsRule
+- Refactor partial implementation of AvoidUseComplexStreamExpressionInSetMethodRule
+- CommentRequiredRule No violation will be prompted when there is no comment for fields injected by Spring beans (including constructor injection)
+
+### BugFix
+- Fixed the problem that when the 'AvoidUseSetFuncInGetMethodRule' rule determines that there is a prohibited method in 
+a lambda expression, all other methods that need to be checked will be judged as violations.
+- Fix 'StreamExpressionStyleRule' When a class in the same directory has a stream expression style violation, 
+the correct stream expression style in other classes in the directory will also be judged as a violation.
+- Fixed 'AvoidTernaryNestedTernaryRule' not being recognized as a violation when nested ternary expressions have parentheses.
+
 ## [1.0.6]
 ### Changed
 - PMD dependencies to com.ctrip.flight.mobile.pmd:pmd-java:1.0.6

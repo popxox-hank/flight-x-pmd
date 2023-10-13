@@ -1,16 +1,17 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCustomizationRule;
 import net.sourceforge.pmd.lang.java.ast.*;
 
 /**
  * @author haoren
  * Create at: 2023-08-28
  */
-public class AvoidComplexConditionalRule extends FlightJavaRule {
+public class AvoidComplexConditionalRule extends FlightCustomizationRule {
 
 
-    public AvoidComplexConditionalRule(){
+    public AvoidComplexConditionalRule() {
+        super();
         addRuleChainVisit(ASTConditionalAndExpression.class);
         addRuleChainVisit(ASTConditionalOrExpression.class);
         addRuleChainVisit(ASTExclusiveOrExpression.class);
@@ -18,6 +19,9 @@ public class AvoidComplexConditionalRule extends FlightJavaRule {
 
     @Override
     public Object visit(ASTExclusiveOrExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
         if (node.findDescendantsOfType(ASTUnaryExpressionNotPlusMinus.class).size() > 0
                 || node.findDescendantsOfType(ASTAndExpression.class).size() > 0
                 || node.findDescendantsOfType(ASTInclusiveOrExpression.class).size() > 0
@@ -29,6 +33,10 @@ public class AvoidComplexConditionalRule extends FlightJavaRule {
 
     @Override
     public Object visit(ASTConditionalOrExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (node.findDescendantsOfType(ASTConditionalAndExpression.class).size() > 0
                 || hasConditionOperator(node)) {
             addViolationWithPrecisePosition(data, node, AVOID_COMPLEX_CONDITIONAL_VIOLATION_MSG);
@@ -39,6 +47,10 @@ public class AvoidComplexConditionalRule extends FlightJavaRule {
 
     @Override
     public Object visit(ASTConditionalAndExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (node.findDescendantsOfType(ASTConditionalOrExpression.class).size() > 0
                 || hasConditionOperator(node)) {
             addViolationWithPrecisePosition(data, node, AVOID_COMPLEX_CONDITIONAL_VIOLATION_MSG);

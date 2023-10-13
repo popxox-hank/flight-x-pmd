@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCustomizationRule;
 import com.google.common.collect.Lists;
 import net.sourceforge.pmd.lang.java.ast.*;
 import net.sourceforge.pmd.lang.java.types.TypeTestUtil;
@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author haoren
  * Create at: 2023-09-18
  */
-public class AvoidUseUnSynchronizedFormatRule extends FlightJavaRule {
+public class AvoidUseUnSynchronizedFormatRule extends FlightCustomizationRule {
 
     private static final PropertyDescriptor<List<String>> PROBLEM_FORBIDDEN_METHOD_NAME_DESCRIPTOR
             = PropertyFactory.stringListProperty("forbiddenMethodName")
@@ -32,11 +32,17 @@ public class AvoidUseUnSynchronizedFormatRule extends FlightJavaRule {
             .build();
 
     public AvoidUseUnSynchronizedFormatRule() {
+        super();
         definePropertyDescriptor(PROBLEM_FORBIDDEN_METHOD_NAME_DESCRIPTOR);
+        addRuleChainVisit(ASTFieldDeclaration.class);
     }
 
     @Override
     public Object visit(ASTFieldDeclaration node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (!node.isStatic()) {
             return data;
         }

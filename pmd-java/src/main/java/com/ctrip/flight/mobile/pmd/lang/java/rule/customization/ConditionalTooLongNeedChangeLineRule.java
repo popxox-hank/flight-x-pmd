@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCustomizationRule;
 import net.sourceforge.pmd.lang.java.ast.ASTConditionalAndExpression;
 import net.sourceforge.pmd.lang.java.ast.ASTConditionalOrExpression;
 import net.sourceforge.pmd.lang.java.ast.JavaNode;
@@ -11,7 +11,7 @@ import net.sourceforge.pmd.properties.PropertyFactory;
  * @author haoren
  * Create at: 2023-08-25
  */
-public class ConditionalTooLongNeedChangeLineRule extends FlightJavaRule {
+public class ConditionalTooLongNeedChangeLineRule extends FlightCustomizationRule {
 
     private static final PropertyDescriptor<Integer> PROBLEM_CONDITIONAL_LENGTH_LIMIT_DESCRIPTOR
             = PropertyFactory.intProperty("conditionalLengthLimit")
@@ -20,7 +20,10 @@ public class ConditionalTooLongNeedChangeLineRule extends FlightJavaRule {
             .build();
 
     public ConditionalTooLongNeedChangeLineRule() {
+        super();
         definePropertyDescriptor(PROBLEM_CONDITIONAL_LENGTH_LIMIT_DESCRIPTOR);
+        addRuleChainVisit(ASTConditionalAndExpression.class);
+        addRuleChainVisit(ASTConditionalOrExpression.class);
     }
 
     @Override
@@ -36,6 +39,9 @@ public class ConditionalTooLongNeedChangeLineRule extends FlightJavaRule {
     }
 
     private void checkViolation(JavaNode node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return;
+        }
         final int conditionalLengthLimit = getProperty(PROBLEM_CONDITIONAL_LENGTH_LIMIT_DESCRIPTOR);
         int conditionalLength = getConditionalLength(node);
         if (conditionalLength < conditionalLengthLimit) {

@@ -135,9 +135,10 @@ Base on PMD Version 6.55.0：([https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_rule
     - [避免使用尤达条件表达式 AvoidYodaConditionRule](#AvoidYodaConditionRule)
     - [避免在get方法中进行set操作 AvoidUseSetFuncInGetMethodRule](#AvoidUseSetFuncInGetMethodRule)
     - [避免在枚举中通过for语句获取枚举值 AvoidGetEnumUseForStatementRule](#AvoidGetEnumUseForStatementRule)
+    - [避免在stream的forEach语句中操作外部变量 AvoidOperateExternalVariInStreamForeachStmtsRule](#AvoidOperateExternalVariInStreamForeachStmtsRule)
 
 # TODO
-
+* 1 自定义规则：stream的foreach里面不要操作外部变量的原因，stream是一种基于函数编程的模型，尽可能的应该使用纯函数（《effective java》第7章46条）
 
 ### <a name="BestPractices" color="green">最佳实践 BestPractices</a>
 * 1 <a name="AvoidReassigningLoopVariablesRule" /> ``[AvoidReassigningLoopVariablesRule]`` Reassigning loop variables
@@ -2754,7 +2755,43 @@ It is recommended to obtain it by initializing the Map.\
             return VALUE_MAP.getOrDefault(value, ColorEnum.NA);
         }
     }
-    ``` 
+    ```
+* 18 <a name="AvoidOperateExternalVariInStreamForeachStmtsRule" /> ``[AvoidOperateExternalVariInStreamForeachStmtsRule]``Stream is 
+a model based on functional programming and should be used as much as possible Use pure functions. For details, 
+see: Chapter 7, Article 46 of "Effective Java".\
+``[避免在stream的forEach语句中操作外部变量]`` stream是一种基于函数编程的模型，尽可能的应该使用纯函数。详见：《effective java》第7章46条。
+
+    ```java
+    public class Foo {
+      // incorrect
+      Map<String, String> map = new HashMap<>();
+      List<String> newList = new ArrayList<>();
+    
+      void foo(ModelClass model) {
+           stringList.stream().foreach(x -> {
+              if (StringUtils.isNotEmpty(x)) {
+                  map.put(x, x); // incorrect
+                  newList.add(x); // incorrect
+                  model.setName(x); // incorrect
+              }
+           });
+      }
+      
+      //correct
+      void foo(ModelClass model) {
+          newList = stringList.stream()
+                                   .filter(StringUtils::isNotEmpty)
+                                   .collect(Collectors.toList());
+          map = stringList.stream()
+                          .filter(StringUtils::isNotEmpty)
+                          .collect(Collectors.toMap(x, x, (k1, k2) -> k1));
+          for(String x : stringList){
+              model.setName(x);
+          }
+      }
+    }
+    ```
+     
     
 
     

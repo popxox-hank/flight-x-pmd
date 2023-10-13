@@ -76,4 +76,63 @@ public class Foo {
 }
 ]]></code>
     </test-code>
+
+    <test-code>
+        <description>failure</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+
+    public void getEndPoint() {
+        requestType.getHead().getMatch().setSyscode("");
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok Test Class no check</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class TestFoo {
+
+    public void getEndPoint() {
+        requestType.getHead().getMatch().setSyscode("");
+    }
+}
+]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class UserLevel {
+    private String uid;
+
+    public UserLevel() {
+    }
+
+    public String getUid() {
+        return this.uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    class InnerClass{
+        public void foo(){
+            List<PackageModel> packageList = getList().stream().map(x->{
+                 PackageModel packageInfoModel = new PackageModel();
+                 packageInfoModel.setTest("test");
+                 return packageInfoModel;
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+        }
+    }
+}
+]]></code>
+    </test-code>
 </test-data>

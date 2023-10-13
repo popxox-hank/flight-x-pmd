@@ -8,6 +8,10 @@
     <description>stream expression correct</description>
     <expected-problems>0</expected-problems>
     <code><![CDATA[
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+import java.util.Optional;
+import reactor.core.publisher.Flux;
     public class Foo {
         public void foo(Stream<String> inputList) {
             List<String> stringList = new ArrayList();
@@ -152,6 +156,10 @@
     <description>stream expression incorrect</description>
     <expected-problems>4</expected-problems>
     <code><![CDATA[
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+import java.util.Optional;
+import reactor.core.publisher.Flux;
     public class Foo {
         public void foo(Stream<String> inputList) {
             List<String> stringList = new ArrayList();
@@ -196,6 +204,10 @@
     <description>Optional expression correct</description>
     <expected-problems>0</expected-problems>
     <code><![CDATA[
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+import java.util.Optional;
+import reactor.core.publisher.Flux;
     public class Foo {
         public void foo(Optional<ModelClass> inputOptional) {
             List<String> stringList = new ArrayList();
@@ -310,7 +322,10 @@
     <description>mono expression correct</description>
     <expected-problems>0</expected-problems>
     <code><![CDATA[
-    import reactor.core.publisher.Mono;
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+import java.util.Optional;
+import reactor.core.publisher.Flux;
     public class Foo {
         public void foo(Mono<String> monoInfo) {
             Mono<Boolean> mono = getMonoInfo()
@@ -364,8 +379,10 @@
         <description>flux expression correct</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-    import reactor.core.publisher.Mono;
-    import reactor.core.publisher.Flux;
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+import java.util.Optional;
+import reactor.core.publisher.Flux;
     public class Foo {
         public void flux() {
             List<String> iterable = Arrays.asList("foo", "bar", "foobar");
@@ -402,6 +419,10 @@
         <description>Collection Stream</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+import java.util.Optional;
+import reactor.core.publisher.Flux;
     public class Foo {
         public void Foo() {
             List<InnerClass> innerClassList = new ArrayList();
@@ -433,6 +454,10 @@
         <description>ok Optional get is special no check</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+import java.util.Optional;
+import reactor.core.publisher.Flux;
 public class Foo {
     public String bar() {
         String referenceID2 = Optional.ofNullable(travelInfo).get().getReferenceID();
@@ -443,4 +468,29 @@ public class Foo {
     }
 }]]></code>
     </test-code>
+
+    <test-code>
+        <description>failure</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+import java.util.stream.Stream;
+
+public class Foo {
+    public void bar() {
+        listResponse.getMessageBody().getXProducts().stream()
+                .filter(x -> ProductType.Insurance.toString().equalsIgnoreCase(x.getProductType()))
+                .collect(Collectors.toList());
+    }
+
+    class Foo2{
+        public void bar2(){
+            detailType.getExtensions().stream()
+                    .filter(e -> AIRLINE.equals(e.getKey()) && !StringUtils.isNullOrWhitespace(e.getValue())).findAny()
+                    .map(e -> Arrays.asList(e.getValue().split(CommonConstant.SEPARATOR_COMMA))).orElse(null);
+        }
+    }
+}]]></code>
+    </test-code>
+
+
 </test-data>

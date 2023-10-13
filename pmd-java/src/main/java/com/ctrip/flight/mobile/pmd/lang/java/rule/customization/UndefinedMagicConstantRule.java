@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightStreamExpressionRule;
 import com.google.common.collect.Lists;
 import net.sourceforge.pmd.lang.ast.Node;
 import net.sourceforge.pmd.lang.java.ast.*;
@@ -15,7 +15,7 @@ import java.util.List;
  * @author haoren
  * Create at: 2023-08-04
  */
-public class UndefinedMagicConstantRule extends FlightJavaRule {
+public class UndefinedMagicConstantRule extends FlightStreamExpressionRule {
 
     private static final PropertyDescriptor<List<String>> LITERAL_WHITE_LIST
             = PropertyFactory.stringListProperty("literalWhiteList")
@@ -25,11 +25,17 @@ public class UndefinedMagicConstantRule extends FlightJavaRule {
     private final static String XPATH = "//Literal/../../../../..[not(VariableInitializer)]";
 
     public UndefinedMagicConstantRule() {
+        super();
         definePropertyDescriptor(LITERAL_WHITE_LIST);
+        addRuleChainVisit(ASTCompilationUnit.class);
     }
 
     @Override
     public Object visit(ASTCompilationUnit node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         // removed repeat magic value , to prevent the parent class to find sub-variable nodes when there is a repeat
         List<ASTLiteral> currentLiterals = new ArrayList<ASTLiteral>();
         try {

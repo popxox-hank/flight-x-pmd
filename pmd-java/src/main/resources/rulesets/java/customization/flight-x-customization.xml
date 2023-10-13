@@ -855,4 +855,46 @@ public class Foo {
 ]]>
         </example>
     </rule>
+
+    <rule name="AvoidOperateExternalVariInStreamForeachStmtsRule"
+          language="java"
+          message="java.customization.AvoidOperateExternalVariInStreamForeachStmtsRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.AvoidOperateExternalVariInStreamForeachStmtsRule">
+        <description>java.customization.AvoidOperateExternalVariInStreamForeachStmtsRule.rule.desc</description>
+        <priority>3</priority>
+        <example>
+            <![CDATA[
+    public class Foo {
+        // incorrect
+        Map<String, String> map = new HashMap<>();
+        List<String> newList = new ArrayList<>();
+
+        void foo(ModelClass model) {
+            stringList.stream().foreach(x -> {
+                if (StringUtils.isNotEmpty(x)) {
+                    map.put(x, x); // incorrect
+                    newList.add(x); // incorrect
+                    model.setName(x); // incorrect
+                }
+            });
+        }
+
+        //correct
+        void foo(ModelClass model) {
+          newList.addAll(stringList.stream()
+                                   .filter(StringUtils::isNotEmpty)
+                                   .collect(Collectors.toList()));
+          map = stringList.stream()
+                          .filter(StringUtils::isNotEmpty)
+                          .collect(Collectors.toMap(x, x, (k1, k2) -> k1));
+          for(String x : stringList){
+              model.setName(x);
+          }
+        }
+    }
+]]>
+        </example>
+    </rule>
+
+
 </ruleset>

@@ -5,9 +5,9 @@ import net.sourceforge.pmd.lang.java.ast.ASTExpression;
 import net.sourceforge.pmd.lang.java.ast.ASTIfStatement;
 import net.sourceforge.pmd.lang.java.ast.ASTPrimaryExpression;
 import net.sourceforge.pmd.lang.java.ast.JavaNode;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * @author haoren
@@ -25,12 +25,16 @@ public class AvoidStreamExpressionInIfStmtsRule extends FlightStreamExpressionRu
 
     @Override
     public Object visit(ASTPrimaryExpression node, Object data) {
-        setContainStreamVariableName(node);
+        setLocalStreamVariableName(node);
         return data;
     }
 
     @Override
     public Object visit(ASTIfStatement node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (isContainStreamExpression(node)) {
             addViolationWithPrecisePosition(data, node, AVOID_STREAM_EXPRESSION_IN_IF_STMTS_VIOLATION_MSG);
         }
@@ -38,38 +42,29 @@ public class AvoidStreamExpressionInIfStmtsRule extends FlightStreamExpressionRu
     }
 
     private boolean isContainStreamExpression(ASTIfStatement node) {
-        List<ASTExpression> expressionList = node.findChildrenOfType(ASTExpression.class);
-        if (expressionList.isEmpty()) {
-            return false;
-        }
         isContainStream = false;
-        for (int i = 0; i < expressionList.size(); i++) {
-            loopCheckStreamExpression(expressionList.get(i));
+        for (ASTExpression astExpression : node.findChildrenOfType(ASTExpression.class)) {
+            loopCheckStreamExpression(astExpression);
         }
-
         return isContainStream;
     }
 
     private void loopCheckStreamExpression(JavaNode node) {
-        if (isSpecialStreamExpression(node)) {
+        if (isContainStream
+                || Objects.isNull(node)
+                || isSpecialStreamExpression(node)
+                || unCheckViolation(node.getFirstChildOfType(ASTPrimaryExpression.class))) {
             return;
         }
-        if (isContainStream) {
-            return;
-        }
-        if (unCheckViolation(node.getFirstChildOfType(ASTPrimaryExpression.class))) {
-            return;
-        }
+
         String imageName;
-        for (int i = 0; i < node.getNumChildren(); i++) {
-            imageName = getPrimaryExpressionImageName(node.getChild(i));
-            if (isStream(imageName)) {
+        for (JavaNode childNode : node.children()) {
+            imageName = getPrimaryExpressionImageName(childNode);
+            if (StringUtils.isNotEmpty(imageName) && isStream(imageName)) {
                 isContainStream = true;
                 return;
             }
-        }
-        for (int i = 0; i < node.getNumChildren(); i++) {
-            loopCheckStreamExpression(node.getChild(i));
+            loopCheckStreamExpression(childNode);
         }
     }
 

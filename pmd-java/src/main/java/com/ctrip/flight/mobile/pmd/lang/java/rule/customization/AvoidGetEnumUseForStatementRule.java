@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCustomizationRule;
 import net.sourceforge.pmd.lang.java.ast.*;
 import net.sourceforge.pmd.lang.java.types.TypeTestUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -14,13 +14,21 @@ import java.util.Optional;
  * @author haoren
  * Create at: 2023-09-20
  */
-public class AvoidGetEnumUseForStatementRule extends FlightJavaRule {
+public class AvoidGetEnumUseForStatementRule extends FlightCustomizationRule {
 
     private static final String ARRAYS_STREAM = "Arrays.stream";
     private static final String ENUM_VALUES = "values";
 
+    public AvoidGetEnumUseForStatementRule(){
+        super();
+        addRuleChainVisit(ASTMethodDeclaration.class);
+    }
     @Override
     public Object visit(ASTMethodDeclaration node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (isEnumClass(node) && isReturnEnumType(node) && isUseForStatement(node)) {
             addViolationWithPrecisePosition(data, node, AVOID_GET_ENUM_USE_FOR_STATEMENT_VIOLATION_MSG);
         }

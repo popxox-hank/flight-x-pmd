@@ -1,6 +1,26 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 # pmd-java Changelog
 
+## [1.0.7]
+### Added
+- 增加自定义规则
+  - 避免在stream的forEach语句中操作外部变量(AvoidOperateExternalVariInStreamForeachStmtsRule)
+  
+### Changed
+- 所有自定义规则去除对于Test类(需要Test开头或Test、Tests和TestCase结尾的类)或带有@Test标识方法的违规检查
+  - 增加基类FlightCustomizationRule用来识别和处理Test类和@Test标识方法 
+- 避免在get方法中进行set操作(AvoidUseSetFuncInGetMethodRule)增加对xxxx.XXX().setXXX()或xxxx.XXX().XXX()...setXXX()的违规拦截
+- 重构基类FlightStreamExpressionRule中对于是否是stream表达式的判断逻辑
+- 重构AvoidStreamExpressionInIfStmtsRule的实现
+- 重构AvoidUseComplexStreamExpressionInSetMethodRule的部分实现
+- 注释必填(CommentRequiredRule)对于Spring bean注入的字段(包含构造函数注入)没有注释时不提示违规
+
+### BugFix
+- 修复"避免在get方法中进行set操作(AvoidUseSetFuncInGetMethodRule)"规则在判断lambda表达式中存在禁止的方法时，会把其他所有需要检查的方法都判定为违规
+  - ps:如果同一个类中的重载方法中的一个方法存在违规会把所有重载方法都判定为违规
+- 修复"流表达式式样规则(StreamExpressionStyleRule)"当同一目录下某个类存在流表达式式样违规的场景下会把该目录下其他类中正确的流表示式样也判断为违规
+- 修复"避免三元表达式嵌套三元表达式(AvoidTernaryNestedTernaryRule)"当嵌套的三元表达式带有括号的场景下未识别为违规
+
 ## [1.0.6]
 ### Changed
 - 流表达式式样规则(StreamExpressionStyleRule)对于Optional.get().getXXX()做特殊处理，不换行也不会判定为违规

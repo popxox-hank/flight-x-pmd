@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+        <description>change field variable</description>
+        <expected-problems>3</expected-problems>
+        <code><![CDATA[
+import java.util.stream.Stream;
+import java.util.*;
+public class Foo {
+        Map<String, String> map = new HashMap<>();
+        List<String> newList = new ArrayList<>();
+        Set<String> newSets = new HashSet<>();
+        void foo() {
+            stringList.stream().foreach(x -> {
+                map.put(x, x); // incorrect
+            });
+
+            stringList.stream().foreach(x -> {
+                newList.add(x); // incorrect
+            });
+
+            stringList.stream().foreach(x -> {
+                newSets.add(x); // incorrect
+            });
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>change local variable</description>
+        <expected-problems>3</expected-problems>
+        <code><![CDATA[
+import java.util.stream.Stream;
+import java.util.*;
+public class Foo {
+
+        void foo() {
+            Map<String, String> map = new HashMap<>();
+            List<String> newList = new ArrayList<>();
+            Set<String> newSets = new HashSet<>();
+            stringList.stream().foreach(x -> {
+                map.put(x, x); // incorrect
+            });
+
+            stringList.stream().foreach(x -> {
+                newList.add(x); // incorrect
+            });
+
+            stringList.stream().foreach(x -> {
+                newSets.add(x); // incorrect
+            });
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>change parameter variable</description>
+        <expected-problems>3</expected-problems>
+        <code><![CDATA[
+import java.util.stream.Stream;
+import java.util.*;
+public class Foo {
+        void foo(Map<String, String> map, List<String> newList, Set<String> newSets) {
+            stringList.stream().foreach(x -> {
+                map.put(x, x); // incorrect
+            });
+
+            stringList.stream().foreach(x -> {
+                newList.add(x); // incorrect
+            });
+
+            stringList.stream().foreach(x -> {
+                newSets.add(x); // incorrect
+            });
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>change model variable</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+import java.util.stream.Stream;
+public class Foo {
+        void foo(ModelClass model) {
+            stringList.stream().foreach(x -> {
+                model.setName("");
+            });
+
+            stringList.stream().foreach(x -> {
+                model.getExtend().setName("");
+            });
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.stream.Stream;
+public class Foo {
+        void foo(ModelClass model) {
+            model.setList(stringList.stream()
+                .filter(Objects::nonNull)
+                .filter(x->Objects.equal(x,"Test"))
+                .collect(Collectors.toList()));
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+    <description>failure</description>
+    <expected-problems>1</expected-problems>
+    <code><![CDATA[
+import java.util.stream.Stream;
+public class Foo {
+        void foo(ModelClass model) {
+            Stream<String> stream = stringList.stream();
+            getStream().collect(Collectors.toList()).foreach(x -> {
+                model.setName(x);
+            });
+        }
+
+        void foo2(ModelClass model) {
+            getStream().foreach(x -> {
+                model.setName(x);
+            });
+        }
+
+        private Stream<String> getStream() {
+            return stringList.stream();
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok not in stream foreach</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+import java.util.stream.Stream;
+public class Foo {
+        void foo(ModelClass model) {
+            stringList.stream().filter(Objects::nonNull).collect(Collectors.toList()).forEach(x -> {
+                model.setName(x);
+            });
+
+            stringList.forEach(x -> {
+                model.setName(x);
+            });
+        }
+}
+        ]]></code>
+    </test-code>
+</test-data>

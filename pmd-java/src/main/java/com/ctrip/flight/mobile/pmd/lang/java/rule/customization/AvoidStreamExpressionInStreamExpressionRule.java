@@ -7,7 +7,6 @@ import net.sourceforge.pmd.properties.PropertyFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author haoren
@@ -35,12 +34,16 @@ public class AvoidStreamExpressionInStreamExpressionRule extends FlightStreamExp
 
     @Override
     public Object visit(ASTPrimaryExpression node, Object data) {
-        setContainStreamVariableName(node);
+        setLocalStreamVariableName(node);
         return data;
     }
 
     @Override
     public Object visit(ASTLambdaExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (!isParentStreamExpression(node)) {
             return data;
         }
@@ -70,25 +73,21 @@ public class AvoidStreamExpressionInStreamExpressionRule extends FlightStreamExp
     }
 
     private void loopStreamExpressionNum(JavaNode javaNode) {
-        for (int i = 0; i < javaNode.getNumChildren(); i++) {
-            if (javaNode.getChild(i) instanceof ASTPrimaryExpression
-                    && isStreamExpression((ASTPrimaryExpression) javaNode.getChild(i), true)) {
+        for (JavaNode childNode : javaNode.children()) {
+            if (childNode instanceof ASTPrimaryExpression
+                    && isStreamExpression((ASTPrimaryExpression) childNode, true)) {
                 streamExpressionNum++;
             }
+            loopStreamExpressionNum(childNode);
         }
-
-        for (int i = 0; i < javaNode.getNumChildren(); i++) {
-            loopStreamExpressionNum(javaNode.getChild(i));
-        }
-
     }
 
 
     private List<ASTExpression> getAstExpressionList(ASTLambdaExpression node) {
         List<ASTExpression> astExpressionList = new ArrayList<>();
-        for (int i = 0; i < node.getNumChildren(); i++) {
-            if (node.getChild(i) instanceof ASTExpression) {
-                astExpressionList.add((ASTExpression) node.getChild(i));
+        for (JavaNode childNode : node.children()) {
+            if (childNode instanceof ASTExpression) {
+                astExpressionList.add((ASTExpression) childNode);
             }
         }
         return astExpressionList;
@@ -101,23 +100,7 @@ public class AvoidStreamExpressionInStreamExpressionRule extends FlightStreamExp
      * @return
      */
     private boolean isParentStreamExpression(ASTLambdaExpression node) {
-        boolean isParent = true;
-        JavaNode parentNode = node.getParent();
-        while (isParent) {
-            if (Objects.isNull(parentNode)) {
-                isParent = false;
-            }
-
-            if (parentNode instanceof ASTArgumentList) {
-                return true;
-            }
-            if (isParent) {
-                parentNode = parentNode.getParent();
-            }
-        }
-
-        return false;
-
+        return node.getParentsOfType(ASTArgumentList.class).size() > 0;
     }
 
     private static final String AVOID_STREAM_EXPRESSION_IN_STREAM_EXPRESSION_VIOLATION_MSG =

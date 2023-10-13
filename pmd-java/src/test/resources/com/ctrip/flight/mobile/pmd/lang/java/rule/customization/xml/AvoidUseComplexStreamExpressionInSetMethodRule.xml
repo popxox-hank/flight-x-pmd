@@ -8,6 +8,8 @@
         <description>bad set contain stream expression</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+
 public class Foo {
         public void foo2(List<String> nameList) {
             ModelClass model = new ModelClass();
@@ -26,6 +28,8 @@ public class Foo {
         <description>bad method is stream</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+
 public class Foo {
     public void bar() {
         ModelClass model = new ModelClass();
@@ -46,6 +50,8 @@ public class Foo {
         <description>local variable is stream</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
+import java.util.stream.*;
+
 public class Foo {
     public void bar() {
         Stream<String> list = stringList.stream();
@@ -61,6 +67,8 @@ public class Foo {
         <description>param is stream</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+
 public class Foo {
     public void bar(Stream<String> list) {
         ModelClass model = new ModelClass();
@@ -75,6 +83,9 @@ public class Foo {
         <description>ok,not complex stream expression</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+
+import reactor.core.publisher.Mono;
+
 public class Foo {
     public void bar(Mono<String> monoInfo) {
         Mono<Boolean> mono = getMonoInfo();
@@ -94,10 +105,16 @@ public class Foo {
         <description>ok</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+
+import reactor.core.publisher.Mono;
+
 public class Foo {
     public void bar() {
         ModelClass model = new ModelClass();
-        model.setOrderId(multiResponse.getResponseBody().getXProducts().get(0).getOrderId());
+        model.setOrderId(multiResponse.getResponseBody()
+        .getXProducts()
+        .get(0)
+        .getOrderId());
     }
 
     // getXProducts is stream expression
@@ -112,6 +129,8 @@ public class Foo {
         <description>ok</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import reactor.core.publisher.Mono;
+
 public class Foo {
     public void bar(Mono<String> monoInfo) {
         ModelClass model = new ModelClass();
@@ -125,6 +144,7 @@ public class Foo {
         <description>ok</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.Optional;
 public class Foo {
     public void bar() {
         Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList().stream().findFirst();

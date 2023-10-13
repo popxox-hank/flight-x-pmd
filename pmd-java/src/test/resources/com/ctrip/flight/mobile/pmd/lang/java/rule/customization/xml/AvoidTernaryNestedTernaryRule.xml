@@ -41,4 +41,19 @@
         }
             ]]></code>
     </test-code>
+
+    <test-code>
+        <description>failure</description>
+        <expected-problems>2</expected-problems>
+        <code><![CDATA[
+        public class Foo {
+            public void foo(String citeCode) {
+                 boolean isCondition = x.getDCity().getCode().equals(cityCode) ? -1
+                    : (x.getACity().getCode().equals(cityCode) ? 0 : 1);
+                 boolean isCondition2 = x == 1 ? 0 : (x==2 ? 1 :0);
+            }
+        }
+            ]]></code>
+    </test-code>
+
 </test-data>

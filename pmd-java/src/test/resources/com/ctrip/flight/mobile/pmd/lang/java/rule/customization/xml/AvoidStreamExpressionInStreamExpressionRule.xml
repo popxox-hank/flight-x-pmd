@@ -8,6 +8,8 @@
         <description>ok</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+import java.util.Optional;
     public class Foo {
         public Predicate<Boolean> foo(String stringValue) {
             return x -> Optional.ofNullable(stringValue).orElse("").equals("1");
@@ -29,6 +31,8 @@
         <description>ok</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+
     public class Foo {
         void bar() {
              Map<Integer, PassengerRefType> passengerRefTypeMap1 =
@@ -43,6 +47,8 @@
         <description>contain stream expression</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+
     public class Foo {
         public void foo() {
             List<InnerClass> innerList = getInnerList();
@@ -93,6 +99,8 @@
         <description>stream expression contain other stream expression</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+
     public class Foo {
         public List<String> foo() {
             List<String> stringList = new ArrayList();
@@ -110,6 +118,8 @@
         <description>stream expression contain other stream expression 2</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+
     public class Foo {
         public void foo(InnerClass innerClass2) {
             InnerClass innerClass = getInnerClass();
@@ -202,6 +212,8 @@
         <rule-property name="streamExpressionLimitNum">1</rule-property>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+
     public class Foo {
         public void foo() {
             InnerClass innerClass = getInnerClass();
@@ -282,6 +294,9 @@
         <description>Ok</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+
 public class Foo {
 
         private Mono<ResultWrapper<MultiFreightListSearchResponseType>> getIntlLoungeSingleBook(SearchXProductContext searchXProductContext,

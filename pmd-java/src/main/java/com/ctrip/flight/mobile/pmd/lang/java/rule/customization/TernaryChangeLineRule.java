@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightStreamExpressionRule;
 import net.sourceforge.pmd.lang.java.ast.ASTConditionalExpression;
 
 import java.util.Objects;
@@ -9,11 +9,19 @@ import java.util.Objects;
  * @author haoren
  * Create at: 2023-09-19
  */
-public class TernaryChangeLineRule extends FlightJavaRule {
+public class TernaryChangeLineRule extends FlightStreamExpressionRule {
 
+    public TernaryChangeLineRule() {
+        super();
+        addRuleChainVisit(ASTConditionalExpression.class);
+    }
 
     @Override
     public Object visit(ASTConditionalExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (isTernaryExpression(node)
                 && isTernaryExpressionChangeLine(node)
                 && isTernaryExpressionSameLine(node)) {

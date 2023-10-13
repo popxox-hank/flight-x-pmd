@@ -1,15 +1,18 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.documentation;
 
 import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCommentRule;
+import com.google.common.collect.ImmutableSet;
 import net.sourceforge.pmd.RuleContext;
 import net.sourceforge.pmd.lang.java.ast.*;
 import net.sourceforge.pmd.lang.java.multifile.signature.JavaOperationSignature;
 import net.sourceforge.pmd.properties.PropertyBuilder;
 import net.sourceforge.pmd.properties.PropertyDescriptor;
 import net.sourceforge.pmd.properties.PropertyFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * @author haoren
@@ -48,7 +51,8 @@ public class CommentRequiredRule extends FlightCommentRule {
     private static final PropertyDescriptor<CommentRequirement> SERIAL_PERSISTENT_FIELDS_CMT_REQUIREMENT_DESCRIPTOR
             = requirementPropertyBuilder("serialPersistentFieldsCommentRequired", "Serial persistent fields comments")
             .defaultValue(CommentRequirement.Ignored).build();
-
+    private static final Set<String> UN_CHECK_FIELD_ANNOTATION = ImmutableSet.of("Autowired", "Inject", "Resource",
+            "InjectMock");
     /**
      * stores the resolved property values. This is necessary in order to transparently use deprecated properties.
      */
@@ -65,6 +69,13 @@ public class CommentRequiredRule extends FlightCommentRule {
         definePropertyDescriptor(ENUM_CMT_REQUIREMENT_DESCRIPTOR);
         definePropertyDescriptor(SERIAL_VERSION_UID_CMT_REQUIREMENT_DESCRIPTOR);
         definePropertyDescriptor(SERIAL_PERSISTENT_FIELDS_CMT_REQUIREMENT_DESCRIPTOR);
+
+//        addRuleChainVisit(ASTCompilationUnit.class);
+//        addRuleChainVisit(ASTEnumDeclaration.class);
+//        addRuleChainVisit(ASTClassOrInterfaceDeclaration.class);
+//        addRuleChainVisit(ASTConstructorDeclaration.class);
+//        addRuleChainVisit(ASTMethodDeclaration.class);
+//        addRuleChainVisit(ASTFieldDeclaration.class);
     }
 
     @Override
@@ -167,7 +178,7 @@ public class CommentRequiredRule extends FlightCommentRule {
         List<ASTMarkerAnnotation> annotations = decl.getParent().findDescendantsOfType(ASTMarkerAnnotation.class);
         for (ASTMarkerAnnotation ann : annotations) { // TODO consider making a method to get the annotations of a
             // method
-            if ("Override" .equals(ann.getFirstChildOfType(ASTName.class).getImage())) {
+            if ("Override".equals(ann.getFirstChildOfType(ASTName.class).getImage())) {
                 return true;
             }
         }
@@ -177,6 +188,9 @@ public class CommentRequiredRule extends FlightCommentRule {
 
     @Override
     public Object visit(ASTFieldDeclaration decl, Object data) {
+        if (isUnCheckAnnotation(decl) || isUnCheckConstructorAnnotation(decl)) {
+            return super.visit(decl, data);
+        }
         if (isSerialVersionUID(decl)) {
             checkCommentMeetsRequirement(data, decl, SERIAL_VERSION_UID_CMT_REQUIREMENT_DESCRIPTOR);
         } else if (isSerialPersistentFields(decl)) {
@@ -188,9 +202,85 @@ public class CommentRequiredRule extends FlightCommentRule {
         return super.visit(decl, data);
     }
 
+    private boolean isUnCheckConstructorAnnotation(ASTFieldDeclaration decl) {
+        List<ASTConstructorDeclaration> constructorList =
+                Optional.ofNullable(decl.getParentsOfType(ASTClassOrInterfaceDeclaration.class))
+                        .orElse(new ArrayList<>())
+                        .stream()
+                        .filter(Objects::nonNull)
+                        .map(x -> x.findDescendantsOfType(ASTConstructorDeclaration.class))
+                        .flatMap(List::stream)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+        if (constructorList.isEmpty()) {
+            return false;
+        }
+
+        List<String> annotationNameList = constructorList.stream()
+                .map(constructor -> constructor.getParent().findChildrenOfType(ASTAnnotation.class))
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .map(ASTAnnotation::getAnnotationName)
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toList());
+        if (!isMatchUnCheckAnnotation(annotationNameList)) {
+            return false;
+        }
+
+        return isMatchConstructorAnnotation(decl, constructorList);
+    }
+
+    private boolean isMatchConstructorAnnotation(ASTFieldDeclaration decl,
+                                                 List<ASTConstructorDeclaration> constructorList) {
+        Set<String> parameterTypeNameSet = constructorList.stream()
+                .filter(Objects::nonNull)
+                .map(constructor -> constructor.findChildrenOfType(ASTFormalParameters.class))
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .map(parameters -> parameters.findChildrenOfType(ASTFormalParameter.class))
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .map(formalParameter -> formalParameter.findChildrenOfType(ASTType.class))
+                .flatMap(List::stream)
+                .filter(Objects::nonNull)
+                .map(ASTType::getTypeImage)
+                .collect(Collectors.toSet());
+        ASTType astType = decl.getFirstChildOfType(ASTType.class);
+        if (parameterTypeNameSet.isEmpty()
+                || Objects.isNull(astType)
+                || StringUtils.isEmpty(astType.getTypeImage())) {
+            return false;
+        }
+
+        return parameterTypeNameSet.contains(astType.getTypeImage());
+
+    }
+
+
+    private boolean isUnCheckAnnotation(ASTFieldDeclaration decl) {
+        List<String> annotationNameList = Optional.ofNullable(decl.getParent())
+                .map(parent -> parent.findChildrenOfType(ASTAnnotation.class))
+                .orElse(new ArrayList<>())
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(astAnnotation -> StringUtils.isNotEmpty(astAnnotation.getAnnotationName()))
+                .map(ASTAnnotation::getAnnotationName)
+                .collect(Collectors.toList());
+
+        return isMatchUnCheckAnnotation(annotationNameList);
+    }
+
+    private boolean isMatchUnCheckAnnotation(List<String> annotationNameList) {
+        return Optional.ofNullable(annotationNameList)
+                .orElse(new ArrayList<>())
+                .stream()
+                .filter(StringUtils::isNotEmpty)
+                .anyMatch(UN_CHECK_FIELD_ANNOTATION::contains);
+    }
+
 
     private boolean isSerialVersionUID(ASTFieldDeclaration field) {
-        return "serialVersionUID" .equals(field.getVariableName())
+        return "serialVersionUID".equals(field.getVariableName())
                 && field.isStatic()
                 && field.isFinal()
                 && field.getType() == long.class;
@@ -208,12 +298,12 @@ public class CommentRequiredRule extends FlightCommentRule {
      * <a href="https://docs.oracle.com/javase/7/docs/platform/serialization/spec/serial-arch.html#6250">Oracle docs</a>
      */
     private boolean isSerialPersistentFields(final ASTFieldDeclaration field) {
-        return "serialPersistentFields" .equals(field.getVariableName())
+        return "serialPersistentFields".equals(field.getVariableName())
                 && field.isPrivate()
                 && field.isStatic()
                 && field.isFinal()
                 && field.isArray()
-                && "ObjectStreamField" .equals(field.jjtGetFirstToken().getImage()); // .getType() returns null
+                && "ObjectStreamField".equals(field.jjtGetFirstToken().getImage()); // .getType() returns null
     }
 
     @Override

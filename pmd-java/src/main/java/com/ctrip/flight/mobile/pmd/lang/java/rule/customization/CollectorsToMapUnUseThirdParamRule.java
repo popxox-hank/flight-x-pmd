@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCustomizationRule;
 import net.sourceforge.pmd.lang.java.ast.ASTArgumentList;
 import net.sourceforge.pmd.lang.java.ast.ASTName;
 import net.sourceforge.pmd.lang.java.ast.ASTPrimaryExpression;
@@ -14,15 +14,24 @@ import java.util.Objects;
  * @author haoren
  * Create at: 2023-09-08
  */
-public class CollectorsToMapUnUseThirdParamRule extends FlightJavaRule {
+public class CollectorsToMapUnUseThirdParamRule extends FlightCustomizationRule {
 
     private static final String COLLECT_IMAGE_NAME = "collect";
     private static final String COLLECT_TO_MAP_IMAGE_NAME = "Collectors.toMap";
-    private static final String COLLECT_TO_CONCURREENT_MAP_IMAGE_NAME = "Collectors.toConcurrentMap";
+    private static final String COLLECT_TO_CONCURRENT_MAP_IMAGE_NAME = "Collectors.toConcurrentMap";
     private static final int COLLECT_TO_MAP_THIRD_PARAM_INDEX = 3;
+
+    public CollectorsToMapUnUseThirdParamRule() {
+        super();
+        addRuleChainVisit(ASTPrimaryExpression.class);
+    }
 
     @Override
     public Object visit(ASTPrimaryExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (isCollectorMapUseThirdParameters(node)) {
             addViolationWithPrecisePosition(data, node, COLECTORS_TO_MAP_UN_USE_THIRD_PARAMETER_VIOLATION_MSG);
         }
@@ -63,7 +72,7 @@ public class CollectorsToMapUnUseThirdParamRule extends FlightJavaRule {
         return Objects.nonNull(astNameList)
                 && astNameList.stream()
                 .anyMatch(astName -> StringUtils.equalsIgnoreCase(astName.getImage(), COLLECT_TO_MAP_IMAGE_NAME)
-                        || StringUtils.equalsIgnoreCase(astName.getImage(), COLLECT_TO_CONCURREENT_MAP_IMAGE_NAME));
+                        || StringUtils.equalsIgnoreCase(astName.getImage(), COLLECT_TO_CONCURRENT_MAP_IMAGE_NAME));
     }
 
     private static final String COLECTORS_TO_MAP_UN_USE_THIRD_PARAMETER_VIOLATION_MSG =

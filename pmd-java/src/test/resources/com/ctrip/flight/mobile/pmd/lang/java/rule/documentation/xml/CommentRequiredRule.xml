@@ -571,4 +571,27 @@ public class CommentRequirement {}
 public class CommentRequirement {}
         ]]></code>
     </test-code>
+
+    <test-code>
+        <description>Spring bean annotation filed don't add comment</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+/**
+* comment
+**/
+public class Test {
+    @Resource
+    private TestHandler2 testHandler2;
+    private TestHandler testHandler;
+
+    /**
+    * comment
+    **/
+    @Autowired
+    public Test(TestHandler testHandler){
+        this.testHandler = testHandler;
+    }
+}
+        ]]></code>
+    </test-code>
 </test-data>

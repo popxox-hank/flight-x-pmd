@@ -41,7 +41,11 @@ public class StreamExpressionTooLongRule extends FlightStreamExpressionRule {
 
     @Override
     public Object visit(ASTPrimaryExpression node, Object data) {
-        setContainStreamVariableName(node);
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
+        setLocalStreamVariableName(node);
         if (!isStreamExpression(node,false)) {
             return data;
         }

@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCustomizationRule;
 import net.sourceforge.pmd.lang.java.ast.*;
 
 import java.util.*;
@@ -9,12 +9,21 @@ import java.util.*;
  * @author haoren
  * Create at: 2023/9/7
  */
-public class GuardClausesRule extends FlightJavaRule {
+public class GuardClausesRule extends FlightCustomizationRule {
 
     private boolean isDirectReturnOrThrowStatement;
 
+    public GuardClausesRule() {
+        super();
+        addRuleChainVisit(ASTMethodDeclaration.class);
+    }
+
     @Override
     public Object visit(ASTMethodDeclaration node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         List<ASTBlockStatement> blockStatementList = Optional.ofNullable(node.getBody())
                 .map(astBlock -> astBlock.findChildrenOfType(ASTBlockStatement.class))
                 .orElse(Collections.emptyList());

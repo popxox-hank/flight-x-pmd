@@ -39,12 +39,16 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
 
     @Override
     public Object visit(ASTPrimaryExpression node, Object data) {
-        setContainStreamVariableName(node);
+        setLocalStreamVariableName(node);
         return data;
     }
 
     @Override
     public Object visit(ASTArguments node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (isNeedHandle(node) && isContainStreamExpression(node)) {
             addViolationWithPrecisePosition(data, node,
                     AVOID_USE_COMPLEX_STREAM_EXPRESSION_IN_SET_METHOD_VIOLATION_MSG);
@@ -70,29 +74,27 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
 
         isContainStream = false;
 
-        for (int i = 0; i < expressionList.size(); i++) {
-            loopCheckStreamExpression(expressionList.get(i));
+        for (ASTExpression astExpression : expressionList) {
+            loopCheckStreamExpression(astExpression);
         }
 
         return isContainStream;
     }
 
     private void loopCheckStreamExpression(JavaNode node) {
-        if (isContainStream) {
+        if (Objects.isNull(node) || isContainStream) {
             return;
         }
         String imageName;
-        for (int i = 0; i < node.getNumChildren(); i++) {
-            imageName = getPrimaryExpressionImageName(node.getChild(i));
-            // 如果stream的来源是入参、内部变量或者方法，则需要特殊处理
-            if (isStreamName(imageName) || (isStreamVariable(imageName)
-                    && !isSpecialStreamExpression(node))) {
+        boolean isStreamVariable;
+        for (JavaNode childNode : node.children()) {
+            imageName = getPrimaryExpressionImageName(childNode);
+            isStreamVariable = isStreamVariable(imageName) && !isSpecialStreamExpression(node);
+            if (isStreamName(imageName) || isStreamVariable) {
                 isContainStream = true;
                 return;
             }
-        }
-        for (int i = 0; i < node.getNumChildren(); i++) {
-            loopCheckStreamExpression(node.getChild(i));
+            loopCheckStreamExpression(childNode);
         }
     }
 
@@ -114,7 +116,7 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
         for (List<ASTPrimaryExpression> astPrimaryList : primaryExpressionList) {
             for (ASTPrimaryExpression astPrimaryExpression : astPrimaryList) {
                 // 对于复杂流表达式的判断是-流表达的层级大于配置数且总行数大于配置数-1
-                if (getRealChildNum(astPrimaryExpression) > steamLayerNum
+                if (getRealChildLayer(astPrimaryExpression) > steamLayerNum
                         && astPrimaryExpression.getEndLine() - astPrimaryExpression.getBeginLine() > (steamLayerNum - 1)) {
                     return false;
                 }
@@ -129,7 +131,7 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
      * @param astPrimaryExpression
      * @return
      */
-    private int getRealChildNum(ASTPrimaryExpression astPrimaryExpression) {
+    private int getRealChildLayer(ASTPrimaryExpression astPrimaryExpression) {
         int childNum = 0;
         List<ASTPrimarySuffix> suffixes = astPrimaryExpression.findChildrenOfType(ASTPrimarySuffix.class);
         for (ASTPrimarySuffix suffix : suffixes) {

@@ -5,106 +5,116 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
 
     <test-code>
-        <description>bad method is stream</description>
-        <expected-problems>1</expected-problems>
-        <code><![CDATA[
-public class Foo {
-    public void bar() {
-        if(getStreamInfo().anyMatch(x -> Objects.equals("1", x))) {
+    <description>bad method is stream</description>
+    <expected-problems>1</expected-problems>
+    <code><![CDATA[
+import java.util.stream.Stream;
+
+    public class Foo {
+        public void bar() {
+            if(getStreamInfo().anyMatch(x -> Objects.equals("1", x))) {
             // bad
+            }
+        }
+
+        private Stream<String> getStreamInfo() {
+            List<String> stringList = new ArrayList<>();
+            stringList.add("1");
+            return stringList.stream();
         }
     }
-
-    private Stream<String> getStreamInfo() {
-        List<String> stringList = new ArrayList<>();
-        stringList.add("1");
-        return stringList.stream();
-    }
-}
-        ]]></code>
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>Bad, contain stream expression</description>
-        <expected-problems>2</expected-problems>
-        <code><![CDATA[
-public class Foo {
-    public void bar(String input, List<String> inputList) {
-        if(Objects.nonNull(input) && !inputList.isEmpty()
-            && inputList.stream().anyMatch(x -> Objects.equals("1", x))) {
+    <description>Bad, contain stream expression</description>
+    <expected-problems>2</expected-problems>
+    <code><![CDATA[
+import java.util.stream.Stream;
+import java.util.Optional;
+    public class Foo {
+        public void bar(String input, List<String> inputList) {
+            if(Objects.nonNull(input) && !inputList.isEmpty()
+                && inputList.stream().anyMatch(x -> Objects.equals("1", x))) {
             // contain stream expression
-        } else if(Optional.ofNullable(input).orElse("").equals("test")) {
+            } else if(Optional.ofNullable(input).orElse("").equals("test")) {
             // contain Optional expression
+            }
         }
     }
-}
-        ]]></code>
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>Bad, contain Optional expression</description>
-        <expected-problems>1</expected-problems>
-        <code><![CDATA[
-public class Foo {
-    public void bar(String input, List<String> inputList) {
-        if(!inputList.isEmpty()
-            && Optional.ofNullable(input).orElse("").equals("test")) {
-            // contain Optional expression
+    <description>Bad, contain Optional expression</description>
+    <expected-problems>1</expected-problems>
+    <code><![CDATA[
+import java.util.Optional;
+    public class Foo {
+        public void bar(String input, List<String> inputList) {
+            if(!inputList.isEmpty()
+                && Optional.ofNullable(input).orElse("").equals("test")) {
+                // contain Optional expression
+            }
         }
     }
-}
-        ]]></code>
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>Ok</description>
-        <expected-problems>0</expected-problems>
-        <code><![CDATA[
-public class Foo {
-    public void bar(String input, List<String> inputList) {
-        if(!inputList.isEmpty() && isTestValue(input)) {
+    <description>Ok</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
+import java.util.Optional;
+    public class Foo {
+        public void bar(String input, List<String> inputList) {
+            if(!inputList.isEmpty() && isTestValue(input)) {
             // ok
+            }
+        }
+
+        private boolean isTestValue(String input) {
+            return Optional.ofNullable(input).orElse("").equals("test");
         }
     }
-
-    private boolean isTestValue(String input) {
-        return Optional.ofNullable(input).orElse("").equals("test");
-    }
-}
-        ]]></code>
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>Ok</description>
-        <expected-problems>0</expected-problems>
-        <code><![CDATA[
+    <description>Ok</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
+import java.util.stream.Stream;
+import reactor.core.publisher.Mono;
+
 public class Foo {
 
-    private Mono<ResultWrapper<MultiFreightListSearchResponseType>> getIntlLoungeSingleBook(SearchXProductContext searchXProductContext,
-                                                                                            MultiFreightListSearchResponseType multiResponse) {
-        boolean queryXList = !searchXProductContext.isSingle()
-            && BOOK_NEED_XLIST.stream()
+    private Mono<ResultWrapper<MultiFreightListSearchResponseType>> getIntlLoungeSingleBook(
+        SearchXProductContext searchXProductContext,
+        MultiFreightListSearchResponseType multiResponse) {
+    boolean queryXList = !searchXProductContext.isSingle()
+        && BOOK_NEED_XLIST.stream()
                 .anyMatch(xProductType -> searchXProductContext.getProductTypes().contains(xProductType.getValue()))
-                && searchXProductContext.isBookXProducts();
+        && searchXProductContext.isBookXProducts();
 
-        // special handler .getXProducts() and queryXList isn't stream expression
-        if (queryXList && null != multiResponse.getResponseBody()
-                    && multiResponse.getResponseBody().getXProducts() != null
-                    && !CollectionUtils.isNullOrEmpty(multiResponse.getResponseBody().getXProducts())) {
+    // special handler .getXProducts() and queryXList isn't stream expression
+    if (queryXList && null != multiResponse.getResponseBody()
+        && multiResponse.getResponseBody().getXProducts() != null
+        && !CollectionUtils.isNullOrEmpty(multiResponse.getResponseBody().getXProducts())) {
 
         }
     }
 
     public Mono<SearchXProductResult> searchXProducts(SearchXProductContext searchXProductContext) {
-    // searchXProducts is stream expression,but ModuleSwitchers.test's arguments contain this
-    boolean isRecordMetrics = ModuleSwitchers.test("metrics.searchxproducts.switch", null, null);
-    if (isRecordMetrics) {
-        Optional.ofNullable(searchXProductContext.getProductTypes()).orElse(new ArrayList<>(0)).stream().distinct()
-        .forEach(productType -> {
-            Metrics.withTag("productType", String.valueOf(productType)).recordOne("searchXProductsReq");
-        });
+        // searchXProducts is stream expression,but ModuleSwitchers.test's arguments contain this
+        boolean isRecordMetrics = ModuleSwitchers.test("metrics.searchxproducts.switch", null, null);
+        if (isRecordMetrics) {
+            Optional.ofNullable(searchXProductContext.getProductTypes()).orElse(new ArrayList<>(0)).stream().distinct()
+            .forEach(productType -> {
+                Metrics.withTag("productType", String.valueOf(productType)).recordOne("searchXProductsReq");
+            });
+        }
     }
-}
 
 
     // getXProducts is stream expression
@@ -112,22 +122,48 @@ public class Foo {
 
     }
 }
-        ]]></code>
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>ok Optional.isPresent in if</description>
+    <description>ok Optional.isPresent in if</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
+    import java.util.Optional;
+    public class Foo {
+        private static List<String> getAllPassengerDisallowRefund(Map<String, Boolean> disallowRefundMap) {
+            Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList().stream().findFirst();
+            if (idCardExtType.isPresent()) {
+            }
+        }
+
+    }
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>ok extendConfig is not stream expression</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
+import java.util.stream.Stream;
+import com.ctrip.flight.mobile.member.book.pojo.PaymentExtendConfigModel;
 public class Foo {
-    private static List<String> getAllPassgerDisallowRefund(Map<String, Boolean> disallowRefundMap) {
-        Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList().stream().findFirst();
-        if (idCardExtType.isPresent()) {
+    private void foo(Stream<PaymentExtendConfigModel> extendStream) {
+        Stream<PaymentExtendConfigModel> extendStream2 = config.getPaymentExtendConfig()
+            .stream();
+        PaymentExtendConfigModel extendConfig = config.getPaymentExtendConfig()
+            .stream()
+            .filter(s -> s.getPayType() == context.getRequest().getPayType())
+            .findFirst()
+            .orElse(null);
+        if (extendConfig.getExtendSteam().extendStream2() != null) {
         }
+    }
+
+    private Stream<PaymentExtendConfigModel> getExtendSteam(){
     }
 
 }
         ]]></code>
     </test-code>
-
 </test-data>

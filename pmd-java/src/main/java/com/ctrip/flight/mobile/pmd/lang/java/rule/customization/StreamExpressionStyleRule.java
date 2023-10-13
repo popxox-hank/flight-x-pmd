@@ -1,13 +1,12 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
 import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightStreamExpressionRule;
-import com.google.common.collect.Lists;
-import net.sourceforge.pmd.lang.java.ast.*;
+import net.sourceforge.pmd.lang.java.ast.ASTAssignmentOperator;
+import net.sourceforge.pmd.lang.java.ast.ASTPrimaryExpression;
+import net.sourceforge.pmd.lang.java.ast.ASTPrimaryPrefix;
+import net.sourceforge.pmd.lang.java.ast.JavaNode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -24,7 +23,11 @@ public class StreamExpressionStyleRule extends FlightStreamExpressionRule {
 
     @Override
     public Object visit(ASTPrimaryExpression node, Object data) {
-        setContainStreamVariableName(node);
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
+        setLocalStreamVariableName(node);
         if (isStreamExpressionAndSetStreamInfo(node)
                 && isStreamExpressionViolation(node)) {
             addViolationWithPrecisePosition(data, node, STREAM_EXPRESSION_STYLE_VIOLATION_MSG);
@@ -36,16 +39,14 @@ public class StreamExpressionStyleRule extends FlightStreamExpressionRule {
     private boolean isStreamExpressionViolation(ASTPrimaryExpression node) {
         String imageName;
         int baseStreamLine = getBaseSteamLine(node);
-        for (int i = 0; i < node.getNumChildren(); i++) {
-            imageName = getPrimaryExpressionImageName(node.getChild(i));
-            if (isStreamExpressionViolation(imageName, baseStreamLine, node.getChild(i), node)) {
+        for (JavaNode childNode : node.children()) {
+            imageName = getPrimaryExpressionImageName(childNode);
+            if (isStreamExpressionViolation(imageName, baseStreamLine, childNode, node)) {
                 return true;
             }
         }
         return false;
     }
-
-
 
 
     private boolean isStreamExpressionViolation(String imageName,
@@ -57,12 +58,15 @@ public class StreamExpressionStyleRule extends FlightStreamExpressionRule {
             return false;
         }
 
+        // 当前节点是stream表达式的首节点 不去比对
         if (currentNode instanceof ASTPrimaryPrefix) {
             return false;
         }
 
+        // 获取整个stream表达式中被判定为stream的变量的索引节点
         int streamIndex = getCurrentStreamIndex(expressionNode);
 
+        // 当前节点的索引值小于等于streamIndex则不进行判断
         if (currentNode.jjtGetChildIndex() <= streamIndex) {
             return false;
         }

@@ -2,16 +2,20 @@ package com.ctrip.flight.mobile.pmd.lang.java.rule;
 
 import com.google.common.collect.Lists;
 import net.sourceforge.pmd.lang.java.ast.*;
+import net.sourceforge.pmd.lang.java.types.TypeTestUtil;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author haoren
  * Create at: 2023-08-25
  */
-public class FlightStreamExpressionRule extends FlightJavaRule {
+public class FlightStreamExpressionRule extends FlightCustomizationRule {
 
     private static final String STREAM_CONSTANT = "stream";
     private static final String OPTIONAL_CONSTANT = "optional";
@@ -25,10 +29,10 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
 
 
     public FlightStreamExpressionRule() {
+        super();
         parameterStreamVariableList = new ArrayList<>();
         methodStreamVariableList = new ArrayList<>();
         localStreamVariableList = new ArrayList<>();
-        streamInfoList = new ArrayList<>();
         addRuleChainVisit(ASTFormalParameter.class);
         addRuleChainVisit(ASTMethodDeclaration.class);
     }
@@ -36,8 +40,15 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
 
     @Override
     public Object visit(ASTMethodDeclaration node, Object data) {
-        if (isStreamExpression(node)
-                && node.getNumChildren() > 1
+        if (node.getNumChildren() < 2) {
+            return data;
+        }
+        ASTType astType = node.getChild(0).getFirstChildOfType(ASTType.class);
+        if (Objects.isNull(astType)) {
+            return null;
+        }
+
+        if (isStreamExpressionType(astType)
                 && node.getChild(1) instanceof ASTMethodDeclarator
                 && StringUtils.isNotEmpty(node.getChild(1).getImage())) {
             methodStreamVariableList.add(node.getChild(1).getImage().toLowerCase());
@@ -48,9 +59,9 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
 
     @Override
     public Object visit(ASTFormalParameter node, Object data) {
-        if (isStreamExpression(node) && node.getNumChildren() > 1
-                && node.getChild(1) instanceof ASTVariableDeclaratorId
-                && StringUtils.isNotEmpty(node.getChild(1).getImage())) {
+        if (node.getNumChildren() == 2
+                && node.getChild(0) instanceof ASTType
+                && isStreamExpressionType((ASTType) node.getChild(0))) {
             parameterStreamVariableList.add(node.getChild(1).getImage().toLowerCase());
         }
         return data;
@@ -59,6 +70,7 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
 
     protected boolean isStreamExpressionAndSetStreamInfo(ASTPrimaryExpression node) {
         String imageName;
+        streamInfoList = new ArrayList<>();
         for (int i = 0; i < node.getNumChildren(); i++) {
             imageName = getPrimaryExpressionImageName(node.getChild(i));
             if (isStream(imageName)) {
@@ -69,24 +81,25 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
         return false;
     }
 
-    private StreamInfo getStreamInfo(String imageName, int index) {
-        StreamInfo streamInfo = new StreamInfo();
-        streamInfo.setImageName(imageName);
-        streamInfo.setStreamIndex(index);
-        return streamInfo;
-    }
 
-    protected boolean isStreamExpression(ASTPrimaryExpression node, boolean isContainStreamExpression) {
+    /**
+     * 是否是stream表达式
+     *
+     * @param node
+     * @param isOnlyCheckStreamName:是否只通过name来匹配是stream表达式
+     * @return
+     */
+    protected boolean isStreamExpression(ASTPrimaryExpression node, boolean isOnlyCheckStreamName) {
         if (isSpecialStreamExpression(node)) {
             return false;
         }
         String imageName;
         for (int i = 0; i < node.getNumChildren(); i++) {
             imageName = getPrimaryExpressionImageName(node.getChild(i));
-            if (isStream(imageName) && !isContainStreamExpression) {
+            if (isStream(imageName) && !isOnlyCheckStreamName) {
                 return true;
             }
-            if (isStreamName(imageName) && isContainStreamExpression) {
+            if (isStreamName(imageName) && isOnlyCheckStreamName) {
                 return true;
             }
         }
@@ -100,53 +113,18 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
      * @return
      */
     protected boolean isSpecialStreamExpression(JavaNode node) {
+        // 两层父节点是ASTArgumentList
         boolean isParentArgument = Objects.nonNull(node)
                 && Objects.nonNull(node.getParent())
                 && Objects.nonNull(node.getParent().getParent())
                 && node.getParent().getParent() instanceof ASTArgumentList;
+        // 父节点是ASTEqualityExpression
         boolean isParentEquality = Objects.nonNull(node)
                 && Objects.nonNull(node.getParent())
                 && node.getParent() instanceof ASTEqualityExpression;
         return isParentArgument || isParentEquality;
     }
 
-    private boolean isStreamExpression(ASTFormalParameter node) {
-        if (node.getNumChildren() == 0) {
-            return false;
-        }
-
-        return loopCheckIsStreamExpression(node.getChild(0));
-    }
-
-    private boolean loopCheckIsStreamExpression(JavaNode node) {
-        JavaNode javaNode = node;
-        boolean isMatchType = javaNode instanceof ASTType || javaNode instanceof ASTResultType;
-        if (!isMatchType) {
-            return false;
-        }
-        boolean hasChild = true;
-        while (hasChild) {
-            if (javaNode.getNumChildren() == 0) {
-                hasChild = false;
-            }
-            if (javaNode instanceof ASTClassOrInterfaceType
-                    && isStreamName(javaNode.getImage())) {
-                return true;
-            }
-            if (hasChild) {
-                javaNode = javaNode.getChild(0);
-            }
-        }
-        return false;
-    }
-
-    private boolean isStreamExpression(ASTMethodDeclaration node) {
-        if (node.getNumChildren() == 0) {
-            return false;
-        }
-
-        return loopCheckIsStreamExpression(node.getChild(0));
-    }
 
     protected String getPrimaryExpressionImageName(JavaNode node) {
         return (node instanceof ASTPrimaryPrefix && node.getNumChildren() > 0)
@@ -198,27 +176,6 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
     }
 
     /**
-     * 从method获取的stream比较特殊，后续跟着的.xxx的流节点不在prefix节点中，所以需要判断出来剔除
-     *
-     * @param imageName
-     * @return
-     */
-    private boolean isStreamMethodVariable(String imageName) {
-        List<String> imageList = getStreamImageNameList(imageName);
-        if (imageList.isEmpty()
-                || Objects.isNull(methodStreamVariableList)) {
-            return false;
-        }
-        return methodStreamVariableList.stream()
-                .anyMatch(streamVariable -> matchStreamName(imageList, streamVariable));
-    }
-
-
-    private boolean matchStreamName(List<String> imageList, String streamName) {
-        return imageList.stream().anyMatch(x -> StringUtils.equalsIgnoreCase(x, streamName));
-    }
-
-    /**
      * AST语法树的imageName是否是流表达式
      *
      * @param imageName
@@ -258,30 +215,15 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
      *
      * @param node
      */
-    protected void setContainStreamVariableName(ASTPrimaryExpression node) {
-        if (!isStreamExpression(node, false)) {
-            return;
-        }
-
-        boolean hasParent = true;
-        JavaNode javaNode = node.getParent();
-        while (hasParent) {
-            if (javaNode == null) {
-                hasParent = false;
-            }
-            if (javaNode instanceof ASTVariableDeclarator
-                    && javaNode.getNumChildren() > 0) {
-                for (JavaNode declaratorNode : javaNode.children()) {
-                    if (declaratorNode instanceof ASTVariableDeclaratorId
-                            && StringUtils.isNotEmpty(declaratorNode.getImage())
-                            && isStreamExpressionDeclaratorNode((ASTVariableDeclaratorId) declaratorNode)) {
-                        localStreamVariableList.add(declaratorNode.getImage().toLowerCase());
-                    }
+    protected void setLocalStreamVariableName(ASTPrimaryExpression node) {
+        List<ASTVariableDeclaratorId> variableDeclaratorIdList;
+        for (ASTVariableDeclarator variableDeclarator : node.getParentsOfType(ASTVariableDeclarator.class)) {
+            variableDeclaratorIdList = variableDeclarator.findDescendantsOfType(ASTVariableDeclaratorId.class);
+            for (ASTVariableDeclaratorId variableDeclaratorId : variableDeclaratorIdList) {
+                if (StringUtils.isNotEmpty(variableDeclaratorId.getImage())
+                        && isStreamExpressionDeclaratorNode(variableDeclaratorId)) {
+                    localStreamVariableList.add(variableDeclaratorId.getImage().toLowerCase());
                 }
-                hasParent = false;
-            }
-            if (hasParent) {
-                javaNode = javaNode.getParent();
             }
         }
     }
@@ -320,6 +262,34 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
         return isUnCheckPrefix && isUnCheckSuffix;
     }
 
+
+    private StreamInfo getStreamInfo(String imageName, int index) {
+        StreamInfo streamInfo = new StreamInfo();
+        streamInfo.setImageName(imageName);
+        streamInfo.setStreamIndex(index);
+        return streamInfo;
+    }
+
+    /**
+     * 从method获取的stream比较特殊，后续跟着的.xxx的流节点不在prefix节点中，所以需要判断出来剔除
+     *
+     * @param imageName
+     * @return
+     */
+    private boolean isStreamMethodVariable(String imageName) {
+        List<String> imageList = getStreamImageNameList(imageName);
+        if (imageList.isEmpty()
+                || Objects.isNull(methodStreamVariableList)) {
+            return false;
+        }
+        return methodStreamVariableList.stream()
+                .anyMatch(streamVariable -> matchStreamName(imageList, streamVariable));
+    }
+
+
+    private boolean matchStreamName(List<String> imageList, String streamName) {
+        return imageList.stream().anyMatch(x -> StringUtils.equalsIgnoreCase(x, streamName));
+    }
 
     /**
      * 获取各节点中的流表达式的名称
@@ -366,21 +336,29 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
     }
 
     /**
-     * 有些内部变量是通过stream方法赋值的需要剔除
+     * 判断内部变量是否是stream表达式
      *
-     * @param declaratorNode
+     * @param variableDeclaratorId
      * @return
      */
-    private boolean isStreamExpressionDeclaratorNode(ASTVariableDeclaratorId declaratorNode) {
-        if (Objects.isNull(declaratorNode.getType())
-                || StringUtils.isEmpty(declaratorNode.getType().getSimpleName())) {
-            return true;
-        }
-        String imageName = declaratorNode.getType().getSimpleName().toLowerCase();
-        return Objects.equals(imageName, STREAM_CONSTANT)
-                || Objects.equals(imageName, OPTIONAL_CONSTANT)
-                || Objects.equals(imageName, MONO_CONSTANT)
-                || Objects.equals(imageName, FLUX_CONSTANT);
+    private boolean isStreamExpressionDeclaratorNode(ASTVariableDeclaratorId variableDeclaratorId) {
+        return TypeTestUtil.isA(Stream.class, variableDeclaratorId)
+                || TypeTestUtil.isA(Optional.class, variableDeclaratorId)
+                || TypeTestUtil.isA(Mono.class, variableDeclaratorId)
+                || TypeTestUtil.isA(Flux.class, variableDeclaratorId);
+    }
+
+    /**
+     * 判断method返回类型和入参是否是stream表达式
+     *
+     * @param astType
+     * @return
+     */
+    private boolean isStreamExpressionType(ASTType astType) {
+        return TypeTestUtil.isA(Stream.class, astType)
+                || TypeTestUtil.isA(Optional.class, astType)
+                || TypeTestUtil.isA(Mono.class, astType)
+                || TypeTestUtil.isA(Flux.class, astType);
     }
 
     protected class StreamInfo {
@@ -391,7 +369,7 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
             return imageName;
         }
 
-        public void setImageName(String imageName) {
+        void setImageName(String imageName) {
             this.imageName = imageName;
         }
 
@@ -399,7 +377,7 @@ public class FlightStreamExpressionRule extends FlightJavaRule {
             return streamIndex;
         }
 
-        public void setStreamIndex(Integer streamIndex) {
+        void setStreamIndex(Integer streamIndex) {
             this.streamIndex = streamIndex;
         }
     }

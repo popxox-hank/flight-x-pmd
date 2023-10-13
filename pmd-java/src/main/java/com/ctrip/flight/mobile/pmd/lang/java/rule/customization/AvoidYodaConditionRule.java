@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCustomizationRule;
 import net.sourceforge.pmd.lang.java.ast.ASTEqualityExpression;
 import net.sourceforge.pmd.lang.java.ast.ASTLiteral;
 import net.sourceforge.pmd.lang.java.ast.ASTName;
@@ -12,12 +12,21 @@ import java.util.Objects;
  * @author haoren
  * Create at: 2023-09-19
  */
-public class AvoidYodaConditionRule extends FlightJavaRule {
+public class AvoidYodaConditionRule extends FlightCustomizationRule {
 
     private static final Integer DEFAULT_LENGTH = 2;
 
+    public AvoidYodaConditionRule() {
+        super();
+        addRuleChainVisit(ASTEqualityExpression.class);
+    }
+
     @Override
     public Object visit(ASTEqualityExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         if (node.getNumChildren() == DEFAULT_LENGTH && isYodaCondition(node)) {
             addViolationWithPrecisePosition(data, node, AVOID_YODA_CONDITION_VIOLATION_MSG);
         }

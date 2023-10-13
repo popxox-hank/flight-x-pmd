@@ -3,11 +3,15 @@ package com.ctrip.flight.mobile.pmd.lang.java.rule;
 
 import com.ctrip.flight.mobile.pmd.utils.I18nResources;
 import net.sourceforge.pmd.lang.ast.Node;
+import net.sourceforge.pmd.lang.java.ast.ASTAnnotation;
+import net.sourceforge.pmd.lang.java.ast.ASTClassOrInterfaceDeclaration;
 import net.sourceforge.pmd.lang.java.rule.AbstractJavaRule;
 import net.sourceforge.pmd.lang.java.symboltable.JavaNameOccurrence;
 import net.sourceforge.pmd.lang.symboltable.NameOccurrence;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @author haoren

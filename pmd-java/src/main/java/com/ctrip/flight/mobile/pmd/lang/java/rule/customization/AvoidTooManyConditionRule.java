@@ -1,6 +1,6 @@
 package com.ctrip.flight.mobile.pmd.lang.java.rule.customization;
 
-import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightJavaRule;
+import com.ctrip.flight.mobile.pmd.lang.java.rule.FlightCustomizationRule;
 import net.sourceforge.pmd.lang.java.ast.ASTConditionalAndExpression;
 import net.sourceforge.pmd.lang.java.ast.ASTConditionalOrExpression;
 import net.sourceforge.pmd.properties.PropertyDescriptor;
@@ -10,7 +10,7 @@ import net.sourceforge.pmd.properties.PropertyFactory;
  * @author haoren
  * Create at: 2023-09-13
  */
-public class AvoidTooManyConditionRule extends FlightJavaRule {
+public class AvoidTooManyConditionRule extends FlightCustomizationRule {
 
     private static final PropertyDescriptor<Integer> PROBLEM_CONDITION_LIMIT_NUM_DESCRIPTOR
             = PropertyFactory.intProperty("conditionLimitedNum")
@@ -19,6 +19,7 @@ public class AvoidTooManyConditionRule extends FlightJavaRule {
             .build();
 
     public AvoidTooManyConditionRule() {
+        super();
         definePropertyDescriptor(PROBLEM_CONDITION_LIMIT_NUM_DESCRIPTOR);
         addRuleChainVisit(ASTConditionalOrExpression.class);
         addRuleChainVisit(ASTConditionalAndExpression.class);
@@ -26,6 +27,10 @@ public class AvoidTooManyConditionRule extends FlightJavaRule {
 
     @Override
     public Object visit(ASTConditionalOrExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         final int conditionLimitedNum = getProperty(PROBLEM_CONDITION_LIMIT_NUM_DESCRIPTOR);
         if (node.getNumChildren() > conditionLimitedNum) {
             addViolationWithPrecisePosition(data, node, AVOID_TOO_MANY_CONDITION_VIOLATION_MSG, conditionLimitedNum);
@@ -35,6 +40,10 @@ public class AvoidTooManyConditionRule extends FlightJavaRule {
 
     @Override
     public Object visit(ASTConditionalAndExpression node, Object data) {
+        if (isTestClass || isTestMethod) {
+            return data;
+        }
+
         final int conditionLimitedNum = getProperty(PROBLEM_CONDITION_LIMIT_NUM_DESCRIPTOR);
         if (node.getNumChildren() > conditionLimitedNum) {
             addViolationWithPrecisePosition(data, node, AVOID_TOO_MANY_CONDITION_VIOLATION_MSG, conditionLimitedNum);
