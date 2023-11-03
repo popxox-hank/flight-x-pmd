@@ -5,139 +5,153 @@
         xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
 
     <test-code>
-        <description>bad set contain stream expression</description>
-        <expected-problems>1</expected-problems>
-        <code><![CDATA[
-import java.util.stream.Stream;
+    <description>bad set contain stream expression</description>
+    <expected-problems>1</expected-problems>
+    <code><![CDATA[
+    import java.util.stream.Stream;
 
-public class Foo {
+    public class Foo {
         public void foo2(List<String> nameList) {
             ModelClass model = new ModelClass();
             model.setName(nameList.stream()
-                                  .filter(Objects::nonNull)
-                                  .findFirst()
-                                  .orElse(""));
+                 .filter(Objects::nonNull)
+                 .findFirst()
+                 .orElse(""));
             // this rule is not violate,but violate in StreamExpressionStyleRule
             model.setName(nameList.stream().filter(Objects::nonNull).findFirst().orElse(""));
         }
-}
-]]></code>
+    }
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>bad method is stream</description>
-        <expected-problems>1</expected-problems>
-        <code><![CDATA[
-import java.util.stream.Stream;
+    <description>bad method is stream</description>
+    <expected-problems>1</expected-problems>
+    <code><![CDATA[
+    import java.util.stream.Stream;
 
-public class Foo {
+    public class Foo {
     public void bar() {
-        ModelClass model = new ModelClass();
-        model.setHasTicket(getStreamInfo().anyMatch(x -> Objects.equals("1", x)
-            || Objects.equals("2", x)));
+    ModelClass model = new ModelClass();
+    model.setHasTicket(getStreamInfo().anyMatch(x -> Objects.equals("1", x)
+    || Objects.equals("2", x)));
     }
 
     private Stream<String> getStreamInfo() {
-        List<String> stringList = new ArrayList<>();
-        stringList.add("1");
-        return stringList.stream();
+    List<String> stringList = new ArrayList<>();
+    stringList.add("1");
+    return stringList.stream();
     }
-}
-        ]]></code>
+    }
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>local variable is stream</description>
-        <expected-problems>1</expected-problems>
-        <code><![CDATA[
-import java.util.stream.*;
+    <description>local variable is stream</description>
+    <expected-problems>1</expected-problems>
+    <code><![CDATA[
+    import java.util.stream.*;
 
-public class Foo {
+    public class Foo {
     public void bar() {
-        Stream<String> list = stringList.stream();
-        ModelClass model = new ModelClass();
-        model.setHasTicket(list.filter(Objects::nonNull)
-                               .anyMatch(x -> Objects.equals("1", x)));
+    Stream<String> list = stringList.stream();
+    ModelClass model = new ModelClass();
+    model.setHasTicket(list.filter(Objects::nonNull)
+    .anyMatch(x -> Objects.equals("1", x)));
     }
-}
-        ]]></code>
+    }
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>param is stream</description>
-        <expected-problems>1</expected-problems>
-        <code><![CDATA[
-import java.util.stream.Stream;
+    <description>param is stream</description>
+    <expected-problems>1</expected-problems>
+    <code><![CDATA[
+    import java.util.stream.Stream;
 
-public class Foo {
+    public class Foo {
     public void bar(Stream<String> list) {
-        ModelClass model = new ModelClass();
-        model.setHasTicket(list.filter(Objects::nonNull)
-                               .anyMatch(x -> Objects.equals("1", x)));
+    ModelClass model = new ModelClass();
+    model.setHasTicket(list.filter(Objects::nonNull)
+    .anyMatch(x -> Objects.equals("1", x)));
     }
-}
-        ]]></code>
+    }
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>ok,not complex stream expression</description>
-        <expected-problems>0</expected-problems>
-        <code><![CDATA[
+    <description>ok,not complex stream expression</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
 
-import reactor.core.publisher.Mono;
+    import reactor.core.publisher.Mono;
 
-public class Foo {
+    public class Foo {
     public void bar(Mono<String> monoInfo) {
-        Mono<Boolean> mono = getMonoInfo();
-        ModelClass model = new ModelClass();
-        model.setMonoInfo(getMonoInfo().map(wrapper -> Objects.equals("test", wrapper)));
-        model.setMonoInfo(monoInfo.map(wrapper -> Objects.equals("test", wrapper)));
+    Mono<Boolean> mono = getMonoInfo();
+    ModelClass model = new ModelClass();
+    model.setMonoInfo(getMonoInfo().map(wrapper -> Objects.equals("test", wrapper)));
+    model.setMonoInfo(monoInfo.map(wrapper -> Objects.equals("test", wrapper)));
     }
 
     private Mono<String> getMonoInfo() {
-            return Mono.just("test");
+    return Mono.just("test");
     }
-}
-        ]]></code>
+    }
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>ok</description>
-        <expected-problems>0</expected-problems>
-        <code><![CDATA[
+    <description>ok</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
 
-import reactor.core.publisher.Mono;
+    import reactor.core.publisher.Mono;
 
-public class Foo {
+    public class Foo {
     public void bar() {
-        ModelClass model = new ModelClass();
-        model.setOrderId(multiResponse.getResponseBody()
-        .getXProducts()
-        .get(0)
-        .getOrderId());
+    ModelClass model = new ModelClass();
+    model.setOrderId(multiResponse.getResponseBody()
+    .getXProducts()
+    .get(0)
+    .getOrderId());
     }
 
     // getXProducts is stream expression
     private Mono<SearchXProductResult> getXProducts(SearchXProductContext searchXProductContext) {
 
     }
-}
-        ]]></code>
+    }
+    ]]></code>
     </test-code>
 
     <test-code>
-        <description>ok</description>
-        <expected-problems>0</expected-problems>
-        <code><![CDATA[
-import reactor.core.publisher.Mono;
+    <description>ok</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
+    import reactor.core.publisher.Mono;
 
-public class Foo {
+    public class Foo {
     public void bar(Mono<String> monoInfo) {
-        ModelClass model = new ModelClass();
-        model.setOrderId(monoInfo);
+    ModelClass model = new ModelClass();
+    model.setOrderId(monoInfo);
     }
-}
-        ]]></code>
+    }
+    ]]></code>
+    </test-code>
+
+    <test-code>
+    <description>ok</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
+    import java.util.Optional;
+    public class Foo {
+    public void bar() {
+    Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList().stream().findFirst();
+    travelerInfo.setCardRefID(idCardExtType.get().getReferenceID());
+    }
+    }
+    ]]></code>
     </test-code>
 
     <test-code>
@@ -147,10 +161,14 @@ public class Foo {
 import java.util.Optional;
 public class Foo {
     public void bar() {
-        Optional<IDCardExtType> idCardExtType = travelInfo.getIdCardList().stream().findFirst();
-        travelerInfo.setCardRefID(idCardExtType.get().getReferenceID());
+    Optional<AirportBuildingDataModel> airportBuildingDataModel =
+                    bsAirportBuildingProvider.getByBuildingId(carServiceKey.getFlightInfo().getArriveTerminalId());
+          flightInfo.setArriveBuilding(airportBuildingProvider.getByBuildingId(bookFlight.getBasicInfo().getArriveTerminalId())
+                        .map(AirportBuildingDataModel::getSmsBuildingName).orElse(null));
     }
 }
         ]]></code>
     </test-code>
+
+
 </test-data>

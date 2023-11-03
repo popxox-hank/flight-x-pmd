@@ -178,8 +178,7 @@ import reactor.core.publisher.Flux;
                 .collect(Collectors.toList());
 
             // method stream
-            Foo2 foo2 = new Foo2();
-            List<String> filterList3 = foo2.getStreamList().filter(Objects::nonNull)
+            List<String> filterList3 = getStreamList().filter(Objects::nonNull)
                 .filter(x -> Objects.equals("1", x))
                 .collect(Collectors.toList());
 
@@ -188,9 +187,7 @@ import reactor.core.publisher.Flux;
                 .filter(x -> Objects.equals("1", x)).collect(Collectors.toList());
 
         }
-    }
 
-    public class Foo2 {
         public Stream<String> getStreamList(){
             List<String> stringList = new ArrayList();
             stringList.add("1");

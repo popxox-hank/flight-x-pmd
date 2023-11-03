@@ -30,7 +30,8 @@ public class CustomizationRuleTest extends SimpleAggregatorTst {
         addRule(RULE_SET, "AvoidTernaryNestedTernaryRule");
         addRule(RULE_SET, "AvoidYodaConditionRule");
         addRule(RULE_SET, "AvoidUseSetFuncInGetMethodRule");
-//        addRule(RULE_SET, "AvoidGetEnumUseForStatementRule");
-//        addRule(RULE_SET, "AvoidOperateExternalVariInStreamForeachStmtsRule");
+        addRule(RULE_SET, "AvoidGetEnumUseForStatementRule");
+        addRule(RULE_SET, "AvoidOperateExternalVariInStreamForeachStmtsRule");
+        addRule(RULE_SET, "NarrativeParagraphRule");
     }
 }

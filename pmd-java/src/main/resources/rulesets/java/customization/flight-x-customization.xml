@@ -896,5 +896,58 @@ public class Foo {
         </example>
     </rule>
 
+    <rule name="NarrativeParagraphRule"
+          language="java"
+          message="java.customization.NarrativeParagraphRule.rule.msg"
+          class="com.ctrip.flight.mobile.pmd.lang.java.rule.customization.NarrativeParagraphRule">
+        <description>java.customization.NarrativeParagraphRule.rule.desc</description>
+        <priority>3</priority>
+        <properties>
+            <property name="paragraphLine" value="10"></property>
+        </properties>
+        <example>
+            <![CDATA[
+    public class Foo {
 
+        // correct
+        void buildModelInfo() {
+            // over than 10 line need add comment
+            // add model basic info
+            ModelClass model = new ModelClass();
+            model.setName("");
+            .....
+            model.desc("");
+
+            //add subModel info
+            SubModel subModel = new SubModel();
+            subModel.setKey("");
+            subModel.setValue("");
+            model.setSubModel(subModel);
+
+            // less than 10 line unnecessary add comment，but can use empty paragraph
+            ExtraInfo extraInfo = new ExtraInfo();
+            extraInfo.setType(1);
+            extraInfo.setDesc("");
+            model.setExtraInfo(extraInfo);
+        }
+
+        //incorrect over than 10 line no comment
+        void buildModelInfo2(ModelClass model) {
+            ModelClass model = new ModelClass();
+            model.setName("");
+            .....
+            model.desc("");
+            SubModel subModel = new SubModel();
+            subModel.setKey("");
+            subModel.setValue("");
+            model.setSubModel(subModel);
+            ExtraInfo extraInfo = new ExtraInfo();
+            extraInfo.setType(1);
+            extraInfo.setDesc("");
+            model.setExtraInfo(extraInfo);
+        }
+    }
+]]>
+        </example>
+    </rule>
 </ruleset>

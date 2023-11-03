@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-data
+        xmlns="http://pmd.sourceforge.net/rule-tests"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://pmd.sourceforge.net/rule-tests http://pmd.sourceforge.net/rule-tests_1_0_0.xsd">
+
+    <test-code>
+    <description>ok</description>
+    <expected-problems>0</expected-problems>
+    <code><![CDATA[
+    public class Foo {
+        void buildModelInfo() {
+            // over than 10 line need add comment
+            // add model basic info
+
+            ModelClass model = new ModelClass();// test
+            model.setName("");
+            model.desc("");
+
+            //add subModel info
+            SubModel subModel = new SubModel();
+            subModel.setKey("");
+            subModel.setValue("");
+            model.setSubModel(subModel);
+
+            /**
+            * less than 10 line unnecessary add comment
+            **/
+            ExtraInfo extraInfo = new ExtraInfo();
+            extraInfo.setType(1);
+            extraInfo.setDesc("");
+            model.setExtraInfo(extraInfo);
+        }
+    }
+    ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>failure</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    void buildModelInfo() {
+            // init
+            String s = "s";
+
+            ModelClass model = new ModelClass();
+            model.setName("");
+            model.desc("");
+            SubModel subModel = new SubModel();
+            subModel.setKey("");
+            subModel.setValue("");
+            model.setSubModel(subModel);
+            ExtraInfo extraInfo = new ExtraInfo();
+            extraInfo.setType(1);
+            extraInfo.setDesc("");
+            model.setExtraInfo(extraInfo);
+        }
+}
+        ]]></code>
+    </test-code>
+
+    <test-code>
+        <description>success</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    void buildModelInfo() {
+            // init
+            String s = "s";
+
+            ModelClass model = new ModelClass();
+            model.setName("");
+            model.desc("");
+
+            SubModel subModel = new SubModel();
+            subModel.setKey("");
+            subModel.setValue("");
+            model.setSubModel(subModel);
+
+            ExtraInfo extraInfo = new ExtraInfo();
+            extraInfo.setType(1);
+            extraInfo.setDesc("");
+            model.setExtraInfo(extraInfo);
+        }
+}
+        ]]></code>
+    </test-code>
+</test-data>

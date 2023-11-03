@@ -89,7 +89,7 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
         boolean isStreamVariable;
         for (JavaNode childNode : node.children()) {
             imageName = getPrimaryExpressionImageName(childNode);
-            isStreamVariable = isStreamVariable(imageName) && !isSpecialStreamExpression(node);
+            isStreamVariable = isStreamVariable(node, imageName) && !isSpecialStreamExpression(node);
             if (isStreamName(imageName) || isStreamVariable) {
                 isContainStream = true;
                 return;
@@ -171,7 +171,7 @@ public class AvoidUseComplexStreamExpressionInSetMethodRule extends FlightStream
         final List<String> startWithMethodNameList = getProperty(PROBLEM_START_WITH_METHOD_NAME_DESCRIPTOR);
         List<String> imageNameList = astNameList.stream()
                 .filter(x -> StringUtils.isNotEmpty(x.getImage()))
-                .map(x -> getStreamImageNameList(x.getImage()))
+                .map(x -> getImageNameList(x.getImage()))
                 .flatMap(List::stream)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

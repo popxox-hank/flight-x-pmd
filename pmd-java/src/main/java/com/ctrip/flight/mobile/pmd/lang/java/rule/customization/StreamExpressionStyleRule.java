@@ -154,7 +154,7 @@ public class StreamExpressionStyleRule extends FlightStreamExpressionRule {
         String imageName;
         for (int i = 0; i < node.getNumChildren(); i++) {
             imageName = getPrimaryExpressionImageName(node.getChild(i));
-            if (isStream(imageName)) {
+            if (isStream(node, imageName)) {
                 return node.getChild(i).getEndLine();
             }
         }

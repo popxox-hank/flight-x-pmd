@@ -136,6 +136,7 @@ Base on PMD Version 6.55.0：([https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_rule
     - [避免在get方法中进行set操作 AvoidUseSetFuncInGetMethodRule](#AvoidUseSetFuncInGetMethodRule)
     - [避免在枚举中通过for语句获取枚举值 AvoidGetEnumUseForStatementRule](#AvoidGetEnumUseForStatementRule)
     - [避免在stream的forEach语句中操作外部变量 AvoidOperateExternalVariInStreamForeachStmtsRule](#AvoidOperateExternalVariInStreamForeachStmtsRule)
+    - [叙事化段落 NarrativeParagraphRule](#NarrativeParagraphRule)
 
 # TODO
 * 1 自定义规则：stream的foreach里面不要操作外部变量的原因，stream是一种基于函数编程的模型，尽可能的应该使用纯函数（《effective java》第7章46条）
@@ -2791,8 +2792,62 @@ see: Chapter 7, Article 46 of "Effective Java".\
       }
     }
     ```
-     
-    
+
+* 19 <a name="NarrativeParagraphRule" /> 
+``[NarrativeParagraphRule]``If the number of consecutive lines in a method exceeds 10, it is recommended to separate 
+ the code for different functions by adding comments or using empty paragraphs.
+``[叙事化段落]`` 一个方法内如果连续的行数超过10行，建议通过增加注释或者用空段落分隔开不同功能的代码。\
+参数配置(config parameter)：paragraphLine
+
+    ```java
+   // correct
+   public class Foo {
+       void buildModelInfo() {
+          // over than 10 line need add comment
+          // add model basic info
+          ModelClass model = new ModelClass();
+          model.setName("");
+          model.desc("");
+   
+          // add subModel info
+          SubModel subModel = new SubModel();
+          subModel.setKey("");
+          subModel.setValue("");
+          subModel.setXXX("");
+          subModel.setXXX2("");
+          subModel.setXXX3("");
+          model.setSubModel(subModel);
+   
+          /**
+          * less than 10 line unnecessary add comment，but can use empty paragraph
+          **/
+          ExtraInfo extraInfo = new ExtraInfo();
+          extraInfo.setType(1);
+          extraInfo.setDesc("");
+          model.setExtraInfo(extraInfo);
+       }
+      
+      // incorrect
+      void buildModelInfo() {
+          ModelClass model = new ModelClass();
+          model.setName("");
+          model.desc("");
+         
+          SubModel subModel = new SubModel();// incorrect over than 10 line,no comment
+          subModel.setKey("");
+          subModel.setValue("");
+          subModel.setXXX("");
+          subModel.setXXX2("");
+          subModel.setXXX3("");
+          model.setSubModel(subModel);
+          ExtraInfo extraInfo = new ExtraInfo();
+          extraInfo.setType(1);
+          extraInfo.setDesc("");
+          model.setExtraInfo(extraInfo);
+      }
+    }
+    ``` 
+
 
     
     

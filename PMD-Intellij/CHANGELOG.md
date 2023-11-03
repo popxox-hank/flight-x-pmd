@@ -2,9 +2,21 @@
 
 # PMDPlugin Changelog
 
+## [1.0.8]
+### Added
+- Add Customization Rules(see detail pmd-java's readme.md)
+  - NarrativeParagraphRule
+### Changed
+- PMD dependencies to com.ctrip.flight.mobile.pmd:pmd-java:1.0.8
+- When modifying the flow expression to determine whether the parameters, methods and internal variables in the base 
+class FlightStreamExpressionRule are flow expressions
+  - Changed from judging only by name to judging by className_name
+  - Originally, all toLowerCase and equalsIgnoreCase were used to determine equality. It was modified to not convert 
+  to all lowercase and use equals.
+  
 ## [1.0.7]
 ### Added
--Add Customization Rules(see detail readme.md)
+-Add Customization Rules(see detail pmd-java's readme.md)
   - AvoidOperateExternalVariInStreamForeachStmtsRule
   
 ### Changed

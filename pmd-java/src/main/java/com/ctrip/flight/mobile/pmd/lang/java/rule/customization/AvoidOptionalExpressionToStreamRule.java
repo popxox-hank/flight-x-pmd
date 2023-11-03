@@ -68,7 +68,6 @@ public class AvoidOptionalExpressionToStreamRule extends FlightJavaRule {
         }
         return imageList.stream()
                 .filter(Objects::nonNull)
-                .map(String::toLowerCase)
                 .anyMatch(x -> Objects.equals(x, needMatchName));
     }
 }

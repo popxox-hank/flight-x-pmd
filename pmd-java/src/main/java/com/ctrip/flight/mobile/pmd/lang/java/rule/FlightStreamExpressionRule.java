@@ -18,10 +18,10 @@ import java.util.stream.Stream;
 public class FlightStreamExpressionRule extends FlightCustomizationRule {
 
     private static final String STREAM_CONSTANT = "stream";
-    private static final String OPTIONAL_CONSTANT = "optional";
-    private static final String MONO_CONSTANT = "mono";
-    private static final String FLUX_CONSTANT = "flux";
-    private static final List<String> UN_CHECK_SUFFIX_METHOD_NAME = Lists.newArrayList("get", "ispresent");
+    private static final String OPTIONAL_CONSTANT = "Optional";
+    private static final String MONO_CONSTANT = "Mono";
+    private static final String FLUX_CONSTANT = "Flux";
+    private static final List<String> UN_CHECK_SUFFIX_METHOD_NAME = Lists.newArrayList("get", "isPresent");
     private List<String> parameterStreamVariableList;
     private List<String> methodStreamVariableList;
     private List<String> localStreamVariableList;
@@ -51,7 +51,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         if (isStreamExpressionType(astType)
                 && node.getChild(1) instanceof ASTMethodDeclarator
                 && StringUtils.isNotEmpty(node.getChild(1).getImage())) {
-            methodStreamVariableList.add(node.getChild(1).getImage().toLowerCase());
+            methodStreamVariableList.add(getStreamVariableName(node, node.getChild(1).getImage()));
         }
         return data;
     }
@@ -62,7 +62,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         if (node.getNumChildren() == 2
                 && node.getChild(0) instanceof ASTType
                 && isStreamExpressionType((ASTType) node.getChild(0))) {
-            parameterStreamVariableList.add(node.getChild(1).getImage().toLowerCase());
+            parameterStreamVariableList.add(getStreamVariableName(node, node.getChild(1).getImage()));
         }
         return data;
     }
@@ -73,7 +73,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         streamInfoList = new ArrayList<>();
         for (int i = 0; i < node.getNumChildren(); i++) {
             imageName = getPrimaryExpressionImageName(node.getChild(i));
-            if (isStream(imageName)) {
+            if (isStream(node, imageName)) {
                 streamInfoList.add(getStreamInfo(imageName, i));
                 return true;
             }
@@ -96,7 +96,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         String imageName;
         for (int i = 0; i < node.getNumChildren(); i++) {
             imageName = getPrimaryExpressionImageName(node.getChild(i));
-            if (isStream(imageName) && !isOnlyCheckStreamName) {
+            if (isStream(node, imageName) && !isOnlyCheckStreamName) {
                 return true;
             }
             if (isStreamName(imageName) && isOnlyCheckStreamName) {
@@ -128,8 +128,8 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
 
     protected String getPrimaryExpressionImageName(JavaNode node) {
         return (node instanceof ASTPrimaryPrefix && node.getNumChildren() > 0)
-                ? Optional.ofNullable(node.getChild(0).getImage()).map(String::toLowerCase).orElse("")
-                : Optional.ofNullable(node.getImage()).map(String::toLowerCase).orElse("");
+                ? Optional.ofNullable(node.getChild(0).getImage()).orElse("")
+                : Optional.ofNullable(node.getImage()).orElse("");
     }
 
     /**
@@ -138,8 +138,8 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
      * @param imageName
      * @return
      */
-    protected boolean isStreamVariable(String imageName) {
-        List<String> imageList = getStreamImageNameList(imageName);
+    protected boolean isStreamVariable(JavaNode javaNode, String imageName) {
+        List<String> imageList = getStreamImageNameList(javaNode, imageName);
         if (imageList.isEmpty()
                 || Objects.isNull(parameterStreamVariableList)
                 || Objects.isNull(methodStreamVariableList)
@@ -168,7 +168,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         String imageName;
         for (int i = 0; i < node.getNumChildren(); i++) {
             imageName = getPrimaryExpressionImageName(node.getChild(i));
-            if (isStreamMethodVariable(imageName)) {
+            if (isStreamMethodVariable(node, imageName)) {
                 return true;
             }
         }
@@ -182,7 +182,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
      * @return
      */
     protected boolean isStreamName(String imageName) {
-        List<String> imageList = getStreamImageNameList(imageName);
+        List<String> imageList = getImageNameList(imageName);
         if (imageList.isEmpty()) {
             return false;
         }
@@ -192,11 +192,11 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
                 || matchStreamName(imageList, FLUX_CONSTANT);
     }
 
-    protected boolean isStream(String imageName) {
-        return isStreamName(imageName) || isStreamVariable(imageName);
+    protected boolean isStream(JavaNode javaNode, String imageName) {
+        return isStreamName(imageName) || isStreamVariable(javaNode, imageName);
     }
 
-    protected List<String> getStreamImageNameList(String imageName) {
+    protected List<String> getStreamImageNameList(JavaNode javaNode, String imageName) {
         if (StringUtils.isEmpty(imageName)) {
             return new ArrayList<>();
         }
@@ -206,7 +206,20 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         }
         return imageList.stream()
                 .filter(Objects::nonNull)
-                .map(String::toLowerCase)
+                .map(name -> getStreamVariableName(javaNode, name))
+                .collect(Collectors.toList());
+    }
+
+    protected List<String> getImageNameList(String imageName) {
+        if (StringUtils.isEmpty(imageName)) {
+            return new ArrayList<>();
+        }
+        List<String> imageList = Arrays.asList(imageName.split("\\."));
+        if (imageList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return imageList.stream()
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -222,7 +235,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
             for (ASTVariableDeclaratorId variableDeclaratorId : variableDeclaratorIdList) {
                 if (StringUtils.isNotEmpty(variableDeclaratorId.getImage())
                         && isStreamExpressionDeclaratorNode(variableDeclaratorId)) {
-                    localStreamVariableList.add(variableDeclaratorId.getImage().toLowerCase());
+                    localStreamVariableList.add(getStreamVariableName(node, variableDeclaratorId.getImage()));
                 }
             }
         }
@@ -246,14 +259,14 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         boolean isUnCheckSuffix;
         if (suffixImageNameList.size() < 2) {
             isUnCheckPrefix = prefixImageNameList.stream()
-                    .anyMatch(imageName -> StringUtils.equalsIgnoreCase(imageName, OPTIONAL_CONSTANT)
-                            || isStreamVariable(imageName));
+                    .anyMatch(imageName -> StringUtils.equals(imageName, OPTIONAL_CONSTANT)
+                            || isStreamVariable(expressionNode, imageName));
             isUnCheckSuffix = prefixImageNameList.stream()
                     .anyMatch(UN_CHECK_SUFFIX_METHOD_NAME::contains);
         } else {
             isUnCheckPrefix = prefixImageNameList.stream()
-                    .anyMatch(imageName -> StringUtils.equalsIgnoreCase(imageName, OPTIONAL_CONSTANT)
-                            || isStreamVariable(imageName));
+                    .anyMatch(imageName -> StringUtils.equals(imageName, OPTIONAL_CONSTANT)
+                            || isStreamVariable(expressionNode, imageName));
             isUnCheckSuffix = suffixImageNameList.stream()
                     .anyMatch(UN_CHECK_SUFFIX_METHOD_NAME::contains);
         }
@@ -276,8 +289,8 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
      * @param imageName
      * @return
      */
-    private boolean isStreamMethodVariable(String imageName) {
-        List<String> imageList = getStreamImageNameList(imageName);
+    private boolean isStreamMethodVariable(JavaNode javaNode, String imageName) {
+        List<String> imageList = getStreamImageNameList(javaNode, imageName);
         if (imageList.isEmpty()
                 || Objects.isNull(methodStreamVariableList)) {
             return false;
@@ -288,7 +301,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
 
 
     private boolean matchStreamName(List<String> imageList, String streamName) {
-        return imageList.stream().anyMatch(x -> StringUtils.equalsIgnoreCase(x, streamName));
+        return imageList.stream().anyMatch(x -> StringUtils.equals(x, streamName));
     }
 
     /**
@@ -308,7 +321,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         List<ASTPrimarySuffix> suffixes = astPrimaryExpression.findChildrenOfType(ASTPrimarySuffix.class);
         for (ASTPrimarySuffix suffix : suffixes) {
             if (!suffix.isArguments() && !suffix.isArrayDereference() && StringUtils.isNotEmpty(suffix.getImage())) {
-                imageNameList.add(suffix.getImage().toLowerCase());
+                imageNameList.add(suffix.getImage());
             }
         }
 
@@ -332,7 +345,7 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
         if (Objects.isNull(astName)) {
             return imageNameList;
         }
-        return getStreamImageNameList(astName.getImage());
+        return getImageNameList(astName.getImage());
     }
 
     /**
@@ -359,6 +372,30 @@ public class FlightStreamExpressionRule extends FlightCustomizationRule {
                 || TypeTestUtil.isA(Optional.class, astType)
                 || TypeTestUtil.isA(Mono.class, astType)
                 || TypeTestUtil.isA(Flux.class, astType);
+    }
+
+    /**
+     * 对于是从方法、参数或者本地变量获取的流信息增加类名
+     *
+     * @param node
+     * @param originName
+     * @return
+     */
+    private String getStreamVariableName(JavaNode node, String originName) {
+        if (Objects.isNull(node)) {
+            return originName;
+        }
+        List<ASTClassOrInterfaceDeclaration> declarationList =
+                node.getParentsOfType(ASTClassOrInterfaceDeclaration.class);
+        if (declarationList.isEmpty()) {
+            return originName;
+        }
+        String className = declarationList.get(0).getSimpleName();
+        if (StringUtils.isEmpty(className)) {
+            return originName;
+        }
+
+        return String.format("%s_%s", className, originName);
     }
 
     protected class StreamInfo {

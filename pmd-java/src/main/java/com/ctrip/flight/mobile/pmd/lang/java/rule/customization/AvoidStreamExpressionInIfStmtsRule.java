@@ -60,7 +60,7 @@ public class AvoidStreamExpressionInIfStmtsRule extends FlightStreamExpressionRu
         String imageName;
         for (JavaNode childNode : node.children()) {
             imageName = getPrimaryExpressionImageName(childNode);
-            if (StringUtils.isNotEmpty(imageName) && isStream(imageName)) {
+            if (StringUtils.isNotEmpty(imageName) && isStream(node, imageName)) {
                 isContainStream = true;
                 return;
             }

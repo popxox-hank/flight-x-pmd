@@ -1,6 +1,16 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 # pmd-java Changelog
 
+## [1.0.8]
+### Added
+- 增加自定义规则
+  - 叙事化段落规则(NarrativeParagraphRule)
+### Changed
+- 修改流表达式判断基类FlightStreamExpressionRule中对于参数、方法和内部变量是否是流表达式时候
+  - 从只通过name判断变更为用className_name来判断
+  - 原先通过全部toLowerCase和equalsIgnoreCase来判断是否相等，修改为不转为全小写和使用equals
+
+
 ## [1.0.7]
 ### Added
 - 增加自定义规则

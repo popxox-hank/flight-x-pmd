@@ -22,7 +22,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("com.ctrip.flight.mobile.pmd:pmd-java:1.0.7")
+    implementation("com.ctrip.flight.mobile.pmd:pmd-java:1.0.8")
 
 }
 java {
